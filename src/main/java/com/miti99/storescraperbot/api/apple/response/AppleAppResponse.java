@@ -1,0 +1,67 @@
+package com.miti99.storescraperbot.api.apple.response;
+
+import java.util.List;
+import java.util.Map;
+
+public record AppleAppResponse(
+    String title,
+    String description,
+    String descriptionHTML,
+    String summary,
+    String installs,
+    long minInstalls,
+    long maxInstalls,
+    double score,
+    String scoreText,
+    long ratings,
+    long reviews,
+    Map<String, Long> histogram,
+    double price,
+    boolean free,
+    String currency,
+    String priceText,
+    boolean offersIAP,
+    String IAPRange,
+    String androidVersion,
+    String androidVersionText,
+    String androidMaxVersion,
+    String developer,
+    String developerId,
+    String developerEmail,
+    String developerWebsite,
+    String developerAddress,
+    String developerLegalName,
+    String developerLegalEmail,
+    String developerLegalAddress,
+    String developerLegalPhoneNumber,
+    String privacyPolicy,
+    String developerInternalID,
+    String genre,
+    String genreId,
+    List<Category> categories,
+    String icon,
+    String headerImage,
+    List<String> screenshots,
+    String video,
+    String videoImage,
+    String previewVideo,
+    String contentRating,
+    String contentRatingDescription,
+    boolean adSupported,
+    String released,
+    String updated,
+    String version,
+    String recentChanges,
+    List<String> comments,
+    boolean preregister,
+    boolean earlyAccessEnabled,
+    boolean isAvailableInPlayPass,
+    boolean editorsChoice,
+    List<Feature> features,
+    String appId,
+    String url) {
+
+  public record Category(String name, String id) {}
+
+  public record Feature(String title, String description) {}
+}
