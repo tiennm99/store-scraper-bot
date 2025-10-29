@@ -1,8 +1,12 @@
 package com.miti99.storescraperbot.model;
 
 import com.miti99.storescraperbot.api.google.response.GoogleAppResponse;
+import lombok.Getter;
+import lombok.Setter;
 
-public class GoogleApp {
+@Getter
+@Setter
+public class GoogleApp extends AbstractModel<String> {
   long cacheTime;
   GoogleAppResponse rawResponse;
 }

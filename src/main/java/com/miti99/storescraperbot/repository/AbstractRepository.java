@@ -1,25 +1,24 @@
 package com.miti99.storescraperbot.repository;
 
 import com.couchbase.client.java.Collection;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.miti99.storescraperbot.config.Config;
 import com.miti99.storescraperbot.model.AbstractModel;
 import com.miti99.storescraperbot.util.CouchbaseUtil;
 import java.lang.reflect.ParameterizedType;
 import lombok.extern.log4j.Log4j2;
 
+/** 1 repository = 1 collection */
 @Log4j2
 public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   public static final String SEPARATOR = "_";
   // protected static ObjectMapper objectMapper = new ObjectMapper();
   protected final Class<V> classV = getDataClass();
   // protected final JavaType type = objectMapper.getTypeFactory().constructType(classV);
-  protected final String scopeName;
+  protected final String scopeName = Config.ENV.name().toLowerCase();
   protected final String collectionName;
 
-  protected AbstractRepository(String scopeName, String collectionName) {
-    this.scopeName = scopeName;
-    this.collectionName = collectionName;
+  protected AbstractRepository(String collectionName) {
+    this.collectionName = collectionName.toLowerCase();
   }
 
   public Collection collection() {
