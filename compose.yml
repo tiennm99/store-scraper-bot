@@ -6,6 +6,7 @@ services:
       - .env
     depends_on:
       - couchbase
+    hostname: couchbase
     networks:
       - internal
 
