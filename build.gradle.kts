@@ -25,7 +25,6 @@ dependencies {
     implementation("com.couchbase.client:java-client:3.4.11")
     implementation("org.apache.logging.log4j:log4j-1.2-api:2.24.3")
     implementation("org.apache.logging.log4j:log4j-core:2.24.3")
-    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.24.3")
     // implementation("org.telegram:telegrambots-abilities:8.0.0")
     implementation("org.telegram:telegrambots-client:8.0.0")
     implementation("org.telegram:telegrambots-extensions:8.0.0")
