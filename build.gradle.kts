@@ -1,10 +1,15 @@
 plugins {
+    application
     java
     id("com.gradleup.shadow") version "8.3.5"
 }
 
 group = "com.miti99"
 version = "1.0-SNAPSHOT"
+
+application {
+    mainClass = "com.miti99.storescraperbot.Main"
+}
 
 configurations {
     compileOnly {
