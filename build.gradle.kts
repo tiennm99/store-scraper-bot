@@ -23,7 +23,6 @@ configurations {
 dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.36")
     implementation("com.couchbase.client:java-client:3.4.11")
-    implementation("com.lmax:disruptor:4.0.0")
     implementation("org.apache.logging.log4j:log4j-1.2-api:2.24.3")
     implementation("org.apache.logging.log4j:log4j-core:2.24.3")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.24.3")

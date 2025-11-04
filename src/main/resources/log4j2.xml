@@ -14,8 +14,8 @@
     </Console>
   </Appenders>
   <Loggers>
-    <AsyncRoot level="warn">
+    <Root level="${env:LOG_LEVEL:-debug}">
       <AppenderRef ref="ConsoleAppender"/>
-    </AsyncRoot>
+    </Root>
   </Loggers>
 </Configuration>

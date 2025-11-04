@@ -3,9 +3,9 @@ package com.miti99.storescraperbot.bot;
 import com.miti99.storescraperbot.config.Config;
 import java.util.function.Supplier;
 
-public class ScoreScrapeBotUsernameSupplier implements Supplier<String> {
-  public static final ScoreScrapeBotUsernameSupplier INSTANCE =
-      new ScoreScrapeBotUsernameSupplier();
+public class StoreScrapeBotUsernameSupplier implements Supplier<String> {
+  public static final StoreScrapeBotUsernameSupplier INSTANCE =
+      new StoreScrapeBotUsernameSupplier();
 
   @Override
   public String get() {

@@ -19,6 +19,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
 
   protected AbstractRepository(String collectionName) {
     this.collectionName = collectionName.toLowerCase();
+    CouchbaseUtil.createCollection(scopeName, collectionName);
   }
 
   public Collection collection() {
