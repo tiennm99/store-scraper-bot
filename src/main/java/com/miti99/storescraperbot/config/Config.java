@@ -8,8 +8,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Config {
-  public static final Env ENV = Env.valueOf(System.getenv("ENV"));
-
   public static final String COUCHBASE_CONNECTION_STRING =
       System.getenv("COUCHBASE_CONNECTION_STRING");
   public static final String COUCHBASE_USERNAME = System.getenv("COUCHBASE_USERNAME");
@@ -19,7 +17,7 @@ public class Config {
   public static final String TELEGRAM_BOT_TOKEN = System.getenv("TELEGRAM_BOT_TOKEN");
   public static final String TELEGRAM_BOT_USERNAME = System.getenv("TELEGRAM_BOT_USERNAME");
 
-  public static final Long CREATOR_ID = Long.parseLong(System.getenv("CREATOR_ID"));
+  public static final Env ENV = Env.valueOf(System.getenv("ENV"));
   public static final Set<Long> ADMIN_IDS =
       Optional.ofNullable(System.getenv("ADMIN_IDS"))
           .map(
