@@ -7,10 +7,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AppleApp extends AbstractModel<String> {
-  long cacheTime;
-  AppleAppResponse rawResponse;
-
-  public AppleApp(String key) {
-    super(key);
-  }
+  AppleAppResponse app;
 }

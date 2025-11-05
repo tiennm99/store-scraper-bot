@@ -10,12 +10,13 @@ import java.lang.reflect.ParameterizedType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import redis.clients.jedis.params.SetParams;
 
 @Log4j2
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   public static final String SEPARATOR = ":";
-  protected final Class<K> classK = getKeyClass();
+  // protected final Class<K> classK = getKeyClass();
   protected final Class<V> classV = getDataClass();
   protected final String prefix =
       String.join(
@@ -24,10 +25,10 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
           Config.ENV.name().toLowerCase(),
           CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, classV.getSimpleName()));
 
-  protected Class<K> getKeyClass() {
-    return (Class<K>)
-        ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
-  }
+  // protected Class<K> getKeyClass() {
+  //   return (Class<K>)
+  //       ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+  // }
 
   /**
    * Lấy ra class của V. Khi tạo 1 abstract class extends AbstractRepository mà không phải final thì
@@ -41,12 +42,20 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
         ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[1];
   }
 
+  /**
+   * @return expire seconds. <= 0 mean never expire.
+   */
+  protected long getExpireSeconds() {
+    return 0;
+  }
+
   public void init(K key) {
     try {
       if (exist(key)) {
         return;
       }
-      V data = classV.getDeclaredConstructor(classK).newInstance(key);
+      V data = classV.getDeclaredConstructor().newInstance();
+      data.setKey(key);
       save(key, data);
     } catch (Exception e) {
       log.error("Error while initializing data", e);
@@ -61,7 +70,11 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
     var databaseKey = getDatabaseKey(key);
     try (var jedis = RedisUtil.getJedis()) {
       var json = GsonUtil.toJson(data);
-      jedis.set(databaseKey, json);
+      if (getExpireSeconds() <= 0) {
+        jedis.set(databaseKey, json);
+      } else {
+        jedis.set(databaseKey, json, SetParams.setParams().ex(getExpireSeconds()));
+      }
     } catch (Exception e) {
       log.error("save error - key {}, databaseKey {}", key, databaseKey, e);
     }

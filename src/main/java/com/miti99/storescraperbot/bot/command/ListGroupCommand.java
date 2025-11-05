@@ -7,11 +7,11 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.chat.Chat;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-public class GetGroupCommand extends BaseStoreScraperBotCommand {
-  public static final GetGroupCommand INSTANCE = new GetGroupCommand();
+public class ListGroupCommand extends BaseStoreScraperBotCommand {
+  public static final ListGroupCommand INSTANCE = new ListGroupCommand();
 
-  GetGroupCommand() {
-    super("getgroup", "Lấy danh sách group được phép sử dụng bot hiện tại");
+  ListGroupCommand() {
+    super("listgroup", "Lấy danh sách group được phép sử dụng bot hiện tại");
   }
 
   @Override
@@ -27,13 +27,12 @@ public class GetGroupCommand extends BaseStoreScraperBotCommand {
       return;
     }
 
-
     var admin = AdminRepository.INSTANCE.load();
     var groups = admin.getGroups();
     var sb = new StringBuilder();
-    sb.append("<b>Groups:</b>/n");
+    sb.append("<b>Groups:</b>\n");
     for (var groupId : groups) {
-      sb.append("- ").append(groupId).append("\n");
+      sb.append("- <code>%s</code>\n".formatted(groupId));
     }
     StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), sb.toString());
   }

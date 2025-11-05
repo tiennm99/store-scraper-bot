@@ -3,16 +3,15 @@ package com.miti99.storescraperbot.bot.command;
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
 import com.miti99.storescraperbot.config.Config;
 import com.miti99.storescraperbot.repository.AdminRepository;
-import com.miti99.storescraperbot.repository.GroupRepository;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.chat.Chat;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-public class AddGroupCommand extends BaseStoreScraperBotCommand {
-  public static final AddGroupCommand INSTANCE = new AddGroupCommand();
+public class DeleteGroupCommand extends BaseStoreScraperBotCommand {
+  public static final DeleteGroupCommand INSTANCE = new DeleteGroupCommand();
 
-  AddGroupCommand() {
-    super("addgroup", "<groupId>. Thêm group vào list group cho phép sử dụng bot");
+  DeleteGroupCommand() {
+    super("delgroup", "<groupId>. Xoá group khỏi list group cho phép sử dụng bot");
   }
 
   @Override
@@ -41,14 +40,13 @@ public class AddGroupCommand extends BaseStoreScraperBotCommand {
     }
 
     var admin = AdminRepository.INSTANCE.load();
-    if (admin.getGroups().contains(groupId)) {
-      StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Group is already added");
+    if (!admin.getGroups().contains(groupId)) {
+      StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Group is not added");
       return;
     }
 
-    GroupRepository.INSTANCE.init(groupId);
-    admin.getGroups().add(groupId);
+    admin.getGroups().remove(groupId);
     AdminRepository.INSTANCE.save(admin);
-    StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Group added successfully");
+    StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Group deleted successfully");
   }
 }
