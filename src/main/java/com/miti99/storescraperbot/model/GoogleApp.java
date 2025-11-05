@@ -9,4 +9,8 @@ import lombok.Setter;
 public class GoogleApp extends AbstractModel<String> {
   long cacheTime;
   GoogleAppResponse rawResponse;
+
+  public GoogleApp(String key) {
+    super(key);
+  }
 }

@@ -1,9 +1,7 @@
 package com.miti99.storescraperbot.api.apple;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.miti99.storescraperbot.api.apple.request.AppleAppRequest;
-import com.miti99.storescraperbot.util.JacksonUtil;
+import com.miti99.storescraperbot.util.GsonUtil;
 import org.junit.jupiter.api.Test;
 
 class AppStoreScraperTest {
@@ -11,6 +9,6 @@ class AppStoreScraperTest {
   void testApp() {
     var request = new AppleAppRequest("com.mpt.kvtm");
     var response = AppStoreScraper.app(request);
-    System.out.println(JacksonUtil.writeValueAsString(response));
+    System.out.println(GsonUtil.toJson(response));
   }
 }

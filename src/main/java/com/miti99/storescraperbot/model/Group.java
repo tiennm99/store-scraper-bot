@@ -11,6 +11,10 @@ import lombok.Setter;
 public class Group extends AbstractModel<Long> {
   List<App> apps;
 
+  public Group(Long key) {
+    super(key);
+  }
+
   public static class App {
     String appId;
     AppType type;

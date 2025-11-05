@@ -1,18 +1,12 @@
 services:
-  couchbase:
-    image: couchbase:community-7.6.2
-    env_file:
-      - .env
+  redis:
+    image: redis:7.2-alpine
     ports:
-      - "8091-8097:8091-8097"
-      - "9123:9123"
-      - "11207:11207"
-      - "11210:11210"
-      - "11280:11280"
-      - "18091-18097:18091-18097"
+      - "6379:6379"
     volumes:
-      - couchbase_data:/opt/couchbase/var
+      - redis_data:/data
     restart: unless-stopped
+    command: redis-server --appendonly yes
 
 volumes:
-  couchbase_data:
+  redis_data:

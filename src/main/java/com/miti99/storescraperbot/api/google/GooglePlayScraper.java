@@ -1,10 +1,8 @@
 package com.miti99.storescraperbot.api.google;
 
-import com.couchbase.client.core.deps.io.netty.handler.codec.http.HttpHeaderNames;
-import com.couchbase.client.core.deps.io.netty.handler.codec.http.HttpHeaderValues;
 import com.miti99.storescraperbot.api.google.request.GoogleAppRequest;
 import com.miti99.storescraperbot.api.google.response.GoogleAppResponse;
-import com.miti99.storescraperbot.util.JacksonUtil;
+import com.miti99.storescraperbot.util.GsonUtil;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -22,10 +20,8 @@ public class GooglePlayScraper {
         HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL + "/app"))
             // .timeout(Duration.ofMillis(TIMEOUT))
-            .header(
-                HttpHeaderNames.CONTENT_TYPE.toString(),
-                HttpHeaderValues.APPLICATION_JSON.toString())
-            .POST(BodyPublishers.ofString(JacksonUtil.writeValueAsString(request)))
+            .header("Content-Type", "application/json")
+            .POST(BodyPublishers.ofString(GsonUtil.toJson(request)))
             .build();
 
     var body =
@@ -35,6 +31,6 @@ public class GooglePlayScraper {
             .build()
             .send(httpRequest, BodyHandlers.ofString())
             .body();
-    return JacksonUtil.readValue(body, GoogleAppResponse.class);
+    return GsonUtil.fromJson(body, GoogleAppResponse.class);
   }
 }

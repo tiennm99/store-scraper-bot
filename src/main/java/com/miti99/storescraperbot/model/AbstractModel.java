@@ -1,11 +1,14 @@
 package com.miti99.storescraperbot.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public abstract class AbstractModel<K> {
+  final K key;
 
-  @JsonProperty("class")
+  @SerializedName("class")
   protected String clazz = getClass().getSimpleName();
 }

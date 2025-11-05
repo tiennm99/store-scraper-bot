@@ -10,4 +10,8 @@ import lombok.Setter;
 @Setter
 public class Admin extends AbstractModel<String> {
   List<Long> groups = new ArrayList<>();
+
+  public Admin(String key) {
+    super(key);
+  }
 }
