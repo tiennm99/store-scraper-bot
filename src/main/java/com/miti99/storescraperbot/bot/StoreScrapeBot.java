@@ -12,7 +12,6 @@ import com.miti99.storescraperbot.bot.command.ListGroupCommand;
 import lombok.extern.log4j.Log4j2;
 import org.telegram.telegrambots.extensions.bots.commandbot.CommandLongPollingTelegramBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -53,15 +52,6 @@ public class StoreScrapeBot extends CommandLongPollingTelegramBot {
 
   @Override
   public void processNonCommandUpdate(Update update) {
-    try {
-      var sendMessage =
-          SendMessage.builder()
-              .chatId(update.getMessage().getChatId())
-              .text("Invalid command")
-              .build();
-      telegramClient.execute(sendMessage);
-    } catch (TelegramApiException e) {
-      log.error("processNonCommandUpdate error", e);
-    }
+    // Ignore
   }
 }
