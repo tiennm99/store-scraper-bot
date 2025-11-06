@@ -37,14 +37,14 @@ public class CheckAppScoreCommand extends BaseStoreScraperBotCommand {
     var sb = new StringBuilder();
     sb.append("<b>Apple Apps:</b>\n");
     sb.append("<code>\n");
-    sb.append("%-20s | %-10s | %-10s\n".formatted("AppId", "Score", "Reviews"));
+    sb.append("%-20s | %-10s | %-10s\n".formatted("AppId", "Score", "Ratings"));
     sb.append("-".repeat(43));
     sb.append("\n");
     for (var app : group.getAppleApps()) {
       var appId = app.appId();
       double score = AppStoreScraper.getAppScore(appId);
-      long reviews = AppStoreScraper.getAppReviews(appId);
-      sb.append("%-20s | %-10s | %-10s\n".formatted(appId, score, reviews));
+      long ratings = AppStoreScraper.getAppRatings(appId);
+      sb.append("%-20s | %-10s | %-10s\n".formatted(appId, score, ratings));
     }
     sb.append("</code>\n");
     sb.append("\n");

@@ -84,4 +84,13 @@ public class AppStoreScraper {
     }
     return response.reviews();
   }
+
+  public static long getAppRatings(String appId) {
+    var response = getResponse(appId);
+    if (response == null) {
+      log.error("response is null");
+      return 0L;
+    }
+    return response.ratings();
+  }
 }
