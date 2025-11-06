@@ -1,12 +1,17 @@
 package com.miti99.storescraperbot.bot.command;
 
+import com.miti99.storescraperbot.api.apple.AppStoreScraper;
+import com.miti99.storescraperbot.api.apple.request.AppleAppRequest;
+import com.miti99.storescraperbot.api.apple.response.AppleAppResponse;
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
 import com.miti99.storescraperbot.repository.AdminRepository;
 import com.miti99.storescraperbot.repository.GroupRepository;
+import lombok.extern.log4j.Log4j2;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.chat.Chat;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+@Log4j2
 public class AddAppleAppCommand extends BaseStoreScraperBotCommand {
   public static final AddAppleAppCommand INSTANCE = new AddAppleAppCommand();
 
@@ -24,12 +29,32 @@ public class AddAppleAppCommand extends BaseStoreScraperBotCommand {
       return;
     }
 
-    if (arguments.length != 1) {
+    if (arguments.length < 1 || arguments.length > 2) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Invalid arguments");
       return;
     }
 
     var appId = arguments[0];
+    long id = -1;
+    AppleAppResponse response = null;
+    try {
+      try {
+        id = Long.parseLong(appId);
+      } catch (Exception e) {
+        // Input không phải id, bỏ qua
+      }
+      if (id != -1) {
+        response = AppStoreScraper.app(new AppleAppRequest(id));
+      } else {
+        response = AppStoreScraper.app(new AppleAppRequest(appId));
+      }
+    } catch (Exception e) {
+      log.error("request app error for appId: '{}', id: '{}'", appId, id, e);
+      StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Error when request app info");
+      return;
+    }
+    appId = response.appId();
+
     long groupId = chat.getId();
     var group = GroupRepository.INSTANCE.load(groupId);
 
@@ -40,6 +65,6 @@ public class AddAppleAppCommand extends BaseStoreScraperBotCommand {
 
     group.getAppleApps().add(appId);
     GroupRepository.INSTANCE.save(groupId, group);
-    StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Apple app added successfully");
+    StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Apple app <code>%s</code> added successfully".formatted(appId));
   }
 }

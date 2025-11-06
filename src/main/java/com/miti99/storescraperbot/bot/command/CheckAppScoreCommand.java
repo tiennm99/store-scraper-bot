@@ -6,17 +6,16 @@ import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
 import com.miti99.storescraperbot.constant.Constant;
 import com.miti99.storescraperbot.repository.AdminRepository;
 import com.miti99.storescraperbot.repository.GroupRepository;
-import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.chat.Chat;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-public class CheckAppCommand extends BaseStoreScraperBotCommand {
-  public static final CheckAppCommand INSTANCE = new CheckAppCommand();
+public class CheckAppScoreCommand extends BaseStoreScraperBotCommand {
+  public static final CheckAppScoreCommand INSTANCE = new CheckAppScoreCommand();
 
-  CheckAppCommand() {
-    super("checkapp", "Kiểm tra cập nhật các app");
+  CheckAppScoreCommand() {
+    super("checkappscore", "Kiểm tra điểm đánh giá các app (sao)");
   }
 
   @Override
@@ -36,34 +35,29 @@ public class CheckAppCommand extends BaseStoreScraperBotCommand {
 
     long groupId = chat.getId();
     var group = GroupRepository.INSTANCE.load(groupId);
-    var now = LocalDate.now();
 
     var sb = new StringBuilder();
     sb.append("<b>Apple Apps:</b>\n");
     sb.append("<code>\n");
-    sb.append("%-20s | %-10s | %-4s | %-2s\n".formatted("AppId", "Updated", "Days", "OK"));
-    sb.append("-".repeat(46));
+    sb.append("%-20s | %-10s | %-10s\n".formatted("AppId", "Score", "Reviews"));
+    sb.append("-".repeat(32));
     sb.append("\n");
     for (var appId : group.getAppleApps()) {
-      var updated = AppStoreScraper.getAppUpdated(appId);
-      long days = ChronoUnit.DAYS.between(updated, now);
-      boolean passed = days <= Constant.NUM_DAYS_WARNING_NOT_UPDATED;
-      sb.append(
-          "%-20s | %-10s | %-4s | %-2s\n".formatted(appId, updated, days, passed ? "✅" : "❌"));
+      double score = AppStoreScraper.getAppScore(appId);
+      long reviews = AppStoreScraper.getAppReviews(appId);
+      sb.append("%-20s | %-10s | %-10s\n".formatted(appId, score, reviews));
     }
     sb.append("</code>\n");
     sb.append("\n");
     sb.append("<b>Google Apps:</b>\n");
     sb.append("<code>\n");
-    sb.append("%-20s | %-10s | %-4s | %-2s\n".formatted("AppId", "Updated", "Days", "OK"));
+    sb.append("%-20s | %-10s | %-10s\n".formatted("AppId", "Score", "Ratings"));
     sb.append("-".repeat(46));
     sb.append("\n");
     for (var appId : group.getGoogleApps()) {
-      var updated = GooglePlayScraper.getLastUpdateOfApp(appId);
-      long days = ChronoUnit.DAYS.between(updated, now);
-      boolean passed = days <= Constant.NUM_DAYS_WARNING_NOT_UPDATED;
-      sb.append(
-          "%-20s | %-10s | %-4s | %-2s\n".formatted(appId, updated, days, passed ? "✅" : "❌"));
+      double score = GooglePlayScraper.getAppScore(appId);
+      long ratings = GooglePlayScraper.getAppRatings(appId);
+      sb.append("%-20s | %-10s | %-10s\n".formatted(appId, score, ratings));
     }
     sb.append("</code>");
     sb.append("\n");

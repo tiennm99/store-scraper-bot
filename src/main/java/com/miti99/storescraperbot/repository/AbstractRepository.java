@@ -16,9 +16,15 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   // protected final Class<K> classK = getKeyClass();
   protected final Class<V> classV = getDataClass();
   protected final String scopeName = Config.ENV.name().toLowerCase();
-  protected final String collectionName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, classV.getSimpleName());
+  protected final String collectionName;
+
+  protected AbstractRepository(String collectionName) {
+    this.collectionName = collectionName;
+    CouchbaseUtil.createCollection(scopeName, collectionName);
+  }
 
   protected AbstractRepository() {
+    collectionName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, classV.getSimpleName());
     CouchbaseUtil.createCollection(scopeName, collectionName);
   }
 

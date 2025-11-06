@@ -1,17 +1,22 @@
 package com.miti99.storescraperbot.bot.command;
 
+import com.miti99.storescraperbot.api.google.GooglePlayScraper;
+import com.miti99.storescraperbot.api.google.request.GoogleAppRequest;
+import com.miti99.storescraperbot.api.google.response.GoogleAppResponse;
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
 import com.miti99.storescraperbot.repository.AdminRepository;
 import com.miti99.storescraperbot.repository.GroupRepository;
+import lombok.extern.log4j.Log4j2;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.chat.Chat;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+@Log4j2
 public class AddGoogleAppCommand extends BaseStoreScraperBotCommand {
   public static final AddGoogleAppCommand INSTANCE = new AddGoogleAppCommand();
 
   AddGoogleAppCommand() {
-    super("addgoogle", "<appId>. Thêm Google app vào danh sách theo dõi của nhóm");
+    super("addgoogle", "<appId> [country]. Thêm Google app vào danh sách theo dõi của nhóm. Một số app cần country để hoạt động đúng");
   }
 
   @Override
@@ -30,6 +35,16 @@ public class AddGoogleAppCommand extends BaseStoreScraperBotCommand {
     }
 
     var appId = arguments[0];
+    GoogleAppResponse response = null;
+    try {
+      response = GooglePlayScraper.app(new GoogleAppRequest(appId));
+    } catch (Exception e) {
+      log.error("request app error for appId: '{}'", appId, e);
+      StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
+          chat.getId(), "Error when request app info");
+      return;
+    }
+
     long groupId = chat.getId();
     var group = GroupRepository.INSTANCE.load(groupId);
 
@@ -42,6 +57,6 @@ public class AddGoogleAppCommand extends BaseStoreScraperBotCommand {
     group.getGoogleApps().add(appId);
     GroupRepository.INSTANCE.save(groupId, group);
     StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
-        chat.getId(), "Google app added successfully");
+        chat.getId(), "Google app <code>%s</code> added successfully".formatted(appId));
   }
 }

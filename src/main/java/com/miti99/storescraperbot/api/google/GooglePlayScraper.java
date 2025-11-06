@@ -43,19 +43,23 @@ public class GooglePlayScraper {
     }
   }
 
-  public static LocalDate getLastUpdateOfApp(String appId) {
+  private static GoogleAppResponse getResponse(String appId) {
     boolean isInCache = GoogleAppRepository.INSTANCE.exist(appId);
-    GoogleAppResponse response = null;
     if (isInCache) {
       var app = GoogleAppRepository.INSTANCE.load(appId);
-      response = app.getApp();
+      return app.getApp();
     } else {
-      response = app(new GoogleAppRequest(appId));
+      var response = app(new GoogleAppRequest(appId));
       GoogleAppRepository.INSTANCE.init(appId);
       var app = GoogleAppRepository.INSTANCE.load(appId);
       app.setApp(response);
       GoogleAppRepository.INSTANCE.save(appId, app);
+      return response;
     }
+  }
+
+  public static LocalDate getLastUpdateOfApp(String appId) {
+    var response = getResponse(appId);
     long lastUpdateMillis = 0;
     if (response != null) {
       lastUpdateMillis = response.updated();
@@ -63,5 +67,23 @@ public class GooglePlayScraper {
       log.error("response is null");
     }
     return LocalDate.ofInstant(Instant.ofEpochMilli(lastUpdateMillis), ZoneId.systemDefault());
+  }
+
+  public static double getAppScore(String appId) {
+    var response = getResponse(appId);
+    if (response == null) {
+      log.error("response is null");
+      return 0.0;
+    }
+    return response.score();
+  }
+
+  public static long getAppRatings(String appId) {
+    var response = getResponse(appId);
+    if (response == null) {
+      log.error("response is null");
+      return 0L;
+    }
+    return response.ratings();
   }
 }

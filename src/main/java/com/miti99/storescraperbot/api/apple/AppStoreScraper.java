@@ -43,24 +43,45 @@ public class AppStoreScraper {
     }
   }
 
-  public static LocalDate getLastUpdateOfApp(String appId) {
+  public static AppleAppResponse getResponse(String appId) {
     boolean isInCache = AppleAppRepository.INSTANCE.exist(appId);
-    AppleAppResponse response = null;
     if (isInCache) {
       var app = AppleAppRepository.INSTANCE.load(appId);
-      response = app.getApp();
+      return app.getApp();
     } else {
-      response = app(new AppleAppRequest(appId));
+      var response = app(new AppleAppRequest(appId));
       AppleAppRepository.INSTANCE.init(appId);
       var app = AppleAppRepository.INSTANCE.load(appId);
       app.setApp(response);
       AppleAppRepository.INSTANCE.save(appId, app);
+      return response;
     }
-    if (response != null) {
-      return LocalDate.ofInstant(Instant.parse(response.updated()), ZoneId.systemDefault());
-    } else {
+  }
+
+  public static LocalDate getAppUpdated(String appId) {
+    var response = getResponse(appId);
+    if (response == null) {
       log.error("response is null");
       return LocalDate.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
     }
+    return LocalDate.ofInstant(Instant.parse(response.updated()), ZoneId.systemDefault());
+  }
+
+  public static double getAppScore(String appId) {
+    var response = getResponse(appId);
+    if (response == null) {
+      log.error("response is null");
+      return 0.0;
+    }
+    return response.score();
+  }
+
+  public static long getAppReviews(String appId) {
+    var response = getResponse(appId);
+    if (response == null) {
+      log.error("response is null");
+      return 0L;
+    }
+    return response.reviews();
   }
 }
