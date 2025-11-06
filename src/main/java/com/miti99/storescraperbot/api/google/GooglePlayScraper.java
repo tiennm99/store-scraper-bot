@@ -43,13 +43,13 @@ public class GooglePlayScraper {
     }
   }
 
-  private static GoogleAppResponse getResponse(String appId) {
+  private static GoogleAppResponse getResponse(String appId, String country) {
     boolean isInCache = GoogleAppRepository.INSTANCE.exist(appId);
     if (isInCache) {
       var app = GoogleAppRepository.INSTANCE.load(appId);
       return app.getApp();
     } else {
-      var response = app(new GoogleAppRequest(appId));
+      var response = app(new GoogleAppRequest(appId, country));
       GoogleAppRepository.INSTANCE.init(appId);
       var app = GoogleAppRepository.INSTANCE.load(appId);
       app.setApp(response);
@@ -58,8 +58,8 @@ public class GooglePlayScraper {
     }
   }
 
-  public static LocalDate getLastUpdateOfApp(String appId) {
-    var response = getResponse(appId);
+  public static LocalDate getLastUpdateOfApp(String appId, String country) {
+    var response = getResponse(appId, country);
     long lastUpdateMillis = 0;
     if (response != null) {
       lastUpdateMillis = response.updated();
@@ -69,8 +69,8 @@ public class GooglePlayScraper {
     return LocalDate.ofInstant(Instant.ofEpochMilli(lastUpdateMillis), ZoneId.systemDefault());
   }
 
-  public static double getAppScore(String appId) {
-    var response = getResponse(appId);
+  public static double getAppScore(String appId, String country) {
+    var response = getResponse(appId, country);
     if (response == null) {
       log.error("response is null");
       return 0.0;
@@ -78,8 +78,8 @@ public class GooglePlayScraper {
     return response.score();
   }
 
-  public static long getAppRatings(String appId) {
-    var response = getResponse(appId);
+  public static long getAppRatings(String appId, String country) {
+    var response = getResponse(appId, country);
     if (response == null) {
       log.error("response is null");
       return 0L;

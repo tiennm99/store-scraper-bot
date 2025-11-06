@@ -44,7 +44,8 @@ public class CheckAppCommand extends BaseStoreScraperBotCommand {
     sb.append("%-20s | %-10s | %-4s | %-2s\n".formatted("AppId", "Updated", "Days", "OK"));
     sb.append("-".repeat(46));
     sb.append("\n");
-    for (var appId : group.getAppleApps()) {
+    for (var app : group.getAppleApps()) {
+      var appId = app.appId();
       var updated = AppStoreScraper.getAppUpdated(appId);
       long days = ChronoUnit.DAYS.between(updated, now);
       boolean passed = days <= Constant.NUM_DAYS_WARNING_NOT_UPDATED;
@@ -58,8 +59,9 @@ public class CheckAppCommand extends BaseStoreScraperBotCommand {
     sb.append("%-20s | %-10s | %-4s | %-2s\n".formatted("AppId", "Updated", "Days", "OK"));
     sb.append("-".repeat(46));
     sb.append("\n");
-    for (var appId : group.getGoogleApps()) {
-      var updated = GooglePlayScraper.getLastUpdateOfApp(appId);
+    for (var app : group.getGoogleApps()) {
+      var appId = app.appId();
+      var updated = GooglePlayScraper.getLastUpdateOfApp(appId, app.country());
       long days = ChronoUnit.DAYS.between(updated, now);
       boolean passed = days <= Constant.NUM_DAYS_WARNING_NOT_UPDATED;
       sb.append(

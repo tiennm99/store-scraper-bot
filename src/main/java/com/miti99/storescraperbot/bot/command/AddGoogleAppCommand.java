@@ -4,6 +4,7 @@ import com.miti99.storescraperbot.api.google.GooglePlayScraper;
 import com.miti99.storescraperbot.api.google.request.GoogleAppRequest;
 import com.miti99.storescraperbot.api.google.response.GoogleAppResponse;
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
+import com.miti99.storescraperbot.model.entity.GoogleAppInfo;
 import com.miti99.storescraperbot.repository.AdminRepository;
 import com.miti99.storescraperbot.repository.GroupRepository;
 import lombok.extern.log4j.Log4j2;
@@ -16,7 +17,9 @@ public class AddGoogleAppCommand extends BaseStoreScraperBotCommand {
   public static final AddGoogleAppCommand INSTANCE = new AddGoogleAppCommand();
 
   AddGoogleAppCommand() {
-    super("addgoogle", "<appId> [country]. Thêm Google app vào danh sách theo dõi của nhóm. Một số app cần country để hoạt động đúng");
+    super(
+        "addgoogle",
+        "<appId> [country]. Thêm Google app vào danh sách theo dõi của nhóm. Một số app cần country để hoạt động đúng, country mặc định là 'vn'");
   }
 
   @Override
@@ -29,15 +32,16 @@ public class AddGoogleAppCommand extends BaseStoreScraperBotCommand {
       return;
     }
 
-    if (arguments.length != 1) {
+    if (arguments.length < 1 || arguments.length > 2) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Invalid arguments");
       return;
     }
 
     var appId = arguments[0];
+    var country = arguments.length == 2 ? arguments[1] : "vn";
     GoogleAppResponse response = null;
     try {
-      response = GooglePlayScraper.app(new GoogleAppRequest(appId));
+      response = GooglePlayScraper.app(new GoogleAppRequest(appId, country));
     } catch (Exception e) {
       log.error("request app error for appId: '{}'", appId, e);
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
@@ -48,13 +52,13 @@ public class AddGoogleAppCommand extends BaseStoreScraperBotCommand {
     long groupId = chat.getId();
     var group = GroupRepository.INSTANCE.load(groupId);
 
-    if (group.getGoogleApps().contains(appId)) {
+    if (group.getGoogleApps().stream().anyMatch(app -> appId.equals(app.appId()))) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
-          chat.getId(), "Google app is already added");
+          chat.getId(), "Google app <code>%s</code> is already added".formatted(appId));
       return;
     }
 
-    group.getGoogleApps().add(appId);
+    group.getGoogleApps().add(new GoogleAppInfo(appId, country));
     GroupRepository.INSTANCE.save(groupId, group);
     StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
         chat.getId(), "Google app <code>%s</code> added successfully".formatted(appId));

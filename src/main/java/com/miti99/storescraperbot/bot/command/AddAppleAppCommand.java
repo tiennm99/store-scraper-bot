@@ -4,6 +4,7 @@ import com.miti99.storescraperbot.api.apple.AppStoreScraper;
 import com.miti99.storescraperbot.api.apple.request.AppleAppRequest;
 import com.miti99.storescraperbot.api.apple.response.AppleAppResponse;
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
+import com.miti99.storescraperbot.model.entity.AppleAppInfo;
 import com.miti99.storescraperbot.repository.AdminRepository;
 import com.miti99.storescraperbot.repository.GroupRepository;
 import lombok.extern.log4j.Log4j2;
@@ -16,7 +17,9 @@ public class AddAppleAppCommand extends BaseStoreScraperBotCommand {
   public static final AddAppleAppCommand INSTANCE = new AddAppleAppCommand();
 
   AddAppleAppCommand() {
-    super("addapple", "<appId>. Thêm Apple app vào danh sách theo dõi của nhóm");
+    super(
+        "addapple",
+        "<id/appId>. Thêm Apple app vào danh sách theo dõi của nhóm. id: <i>iTunes 'trackId'</i>, appId: <i>iTunes 'bundleId'</i>");
   }
 
   @Override
@@ -50,7 +53,8 @@ public class AddAppleAppCommand extends BaseStoreScraperBotCommand {
       }
     } catch (Exception e) {
       log.error("request app error for appId: '{}', id: '{}'", appId, id, e);
-      StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Error when request app info");
+      StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
+          chat.getId(), "Error when request app info");
       return;
     }
     appId = response.appId();
@@ -58,13 +62,16 @@ public class AddAppleAppCommand extends BaseStoreScraperBotCommand {
     long groupId = chat.getId();
     var group = GroupRepository.INSTANCE.load(groupId);
 
-    if (group.getAppleApps().contains(appId)) {
-      StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Apple app is already added");
+    var finalAppId = appId;
+    if (group.getAppleApps().stream().anyMatch(app -> finalAppId.equals(app.appId()))) {
+      StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
+          chat.getId(), "Apple app <code>%s</code> is already added".formatted(appId));
       return;
     }
 
-    group.getAppleApps().add(appId);
+    group.getAppleApps().add(new AppleAppInfo(appId));
     GroupRepository.INSTANCE.save(groupId, group);
-    StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Apple app <code>%s</code> added successfully".formatted(appId));
+    StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
+        chat.getId(), "Apple app <code>%s</code> added successfully".formatted(appId));
   }
 }

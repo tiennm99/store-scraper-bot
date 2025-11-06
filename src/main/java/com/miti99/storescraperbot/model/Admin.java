@@ -1,10 +1,10 @@
 package com.miti99.storescraperbot.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.Getter;
 
 @Getter
 public class Admin extends AbstractModel<String> {
-  final List<Long> groups = new ArrayList<>();
+  final Set<Long> groups = new HashSet<>();
 }

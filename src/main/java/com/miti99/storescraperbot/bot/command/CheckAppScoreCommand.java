@@ -3,10 +3,8 @@ package com.miti99.storescraperbot.bot.command;
 import com.miti99.storescraperbot.api.apple.AppStoreScraper;
 import com.miti99.storescraperbot.api.google.GooglePlayScraper;
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
-import com.miti99.storescraperbot.constant.Constant;
 import com.miti99.storescraperbot.repository.AdminRepository;
 import com.miti99.storescraperbot.repository.GroupRepository;
-import java.time.temporal.ChronoUnit;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.chat.Chat;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
@@ -40,9 +38,10 @@ public class CheckAppScoreCommand extends BaseStoreScraperBotCommand {
     sb.append("<b>Apple Apps:</b>\n");
     sb.append("<code>\n");
     sb.append("%-20s | %-10s | %-10s\n".formatted("AppId", "Score", "Reviews"));
-    sb.append("-".repeat(32));
+    sb.append("-".repeat(43));
     sb.append("\n");
-    for (var appId : group.getAppleApps()) {
+    for (var app : group.getAppleApps()) {
+      var appId = app.appId();
       double score = AppStoreScraper.getAppScore(appId);
       long reviews = AppStoreScraper.getAppReviews(appId);
       sb.append("%-20s | %-10s | %-10s\n".formatted(appId, score, reviews));
@@ -52,11 +51,13 @@ public class CheckAppScoreCommand extends BaseStoreScraperBotCommand {
     sb.append("<b>Google Apps:</b>\n");
     sb.append("<code>\n");
     sb.append("%-20s | %-10s | %-10s\n".formatted("AppId", "Score", "Ratings"));
-    sb.append("-".repeat(46));
+    sb.append("-".repeat(43));
     sb.append("\n");
-    for (var appId : group.getGoogleApps()) {
-      double score = GooglePlayScraper.getAppScore(appId);
-      long ratings = GooglePlayScraper.getAppRatings(appId);
+    for (var app : group.getGoogleApps()) {
+      var appId = app.appId();
+      var country = app.country();
+      double score = GooglePlayScraper.getAppScore(appId, country);
+      long ratings = GooglePlayScraper.getAppRatings(appId, country);
       sb.append("%-20s | %-10s | %-10s\n".formatted(appId, score, ratings));
     }
     sb.append("</code>");

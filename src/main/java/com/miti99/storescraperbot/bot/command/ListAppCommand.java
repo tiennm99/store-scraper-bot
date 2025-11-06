@@ -11,7 +11,7 @@ public class ListAppCommand extends BaseStoreScraperBotCommand {
   public static final ListAppCommand INSTANCE = new ListAppCommand();
 
   ListAppCommand() {
-    super("listapp", "<appId>. Thêm Google app vào danh sách theo dõi của nhóm");
+    super("listapp", "<appId>. Lấy danh sách app đang theo dõi của nhóm");
   }
 
   @Override
@@ -34,13 +34,30 @@ public class ListAppCommand extends BaseStoreScraperBotCommand {
 
     var sb = new StringBuilder();
     sb.append("<b>Apple Apps:</b>\n");
-    for (var appId : group.getAppleApps()) {
-      sb.append("- <code>%s</code>\n".formatted(appId));
+    sb.append("<code>\n");
+    sb.append("%-2s | %-20s\n".formatted("#", "AppId"));
+    sb.append("-".repeat(25));
+    sb.append("\n");
+    int i = 0;
+    for (var app : group.getAppleApps()) {
+      i++;
+      sb.append("%-2d | %-20s\n".formatted(i,app.appId()));
     }
+    sb.append("</code>\n");
+    sb.append("\n");
+
     sb.append("\n<b>Google Apps:</b>\n");
-    for (var appId : group.getGoogleApps()) {
-      sb.append("- <code>%s</code>\n".formatted(appId));
+    sb.append("<code>\n");
+    sb.append("%-2s | %-20s | %-7s\n".formatted("#", "AppId", "Country"));
+    sb.append("-".repeat(35));
+    sb.append("\n");
+    i = 0;
+    for (var app : group.getGoogleApps()) {
+      i++;
+      sb.append("%-2s | %-20s | %-7s\n".formatted(i, app.appId(), app.country()));
     }
+    sb.append("</code>\n");
+    sb.append("\n");
 
     StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), sb.toString());
   }

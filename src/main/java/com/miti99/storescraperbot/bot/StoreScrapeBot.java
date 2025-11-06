@@ -4,6 +4,7 @@ import com.miti99.storescraperbot.bot.command.AddAppleAppCommand;
 import com.miti99.storescraperbot.bot.command.AddGoogleAppCommand;
 import com.miti99.storescraperbot.bot.command.AddGroupCommand;
 import com.miti99.storescraperbot.bot.command.CheckAppCommand;
+import com.miti99.storescraperbot.bot.command.CheckAppScoreCommand;
 import com.miti99.storescraperbot.bot.command.DeleteAppleAppCommand;
 import com.miti99.storescraperbot.bot.command.DeleteGroupCommand;
 import com.miti99.storescraperbot.bot.command.InfoCommand;
@@ -34,6 +35,7 @@ public class StoreScrapeBot extends CommandLongPollingTelegramBot {
     register(DeleteAppleAppCommand.INSTANCE);
     register(ListAppCommand.INSTANCE);
     register(CheckAppCommand.INSTANCE);
+    register(CheckAppScoreCommand.INSTANCE);
     setMyCommands();
   }
 
