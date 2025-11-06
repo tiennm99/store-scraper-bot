@@ -3,5 +3,5 @@ services:
     build:
       context: .
 
-# If you need redis, add redis service
+# If you need database, add database service
 # Check compose.dev.yml for example

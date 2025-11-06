@@ -8,7 +8,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Config {
-  public static final String REDIS_URL = System.getenv("REDIS_URL");
+  public static final String COUCHBASE_CONNECTION_STRING =
+      System.getenv("COUCHBASE_CONNECTION_STRING");
+  public static final String COUCHBASE_USERNAME = System.getenv("COUCHBASE_USERNAME");
+  public static final String COUCHBASE_PASSWORD = System.getenv("COUCHBASE_PASSWORD");
+  public static final String COUCHBASE_BUCKET_NAME = System.getenv("COUCHBASE_BUCKET_NAME");
 
   public static final String TELEGRAM_BOT_TOKEN = System.getenv("TELEGRAM_BOT_TOKEN");
   public static final String TELEGRAM_BOT_USERNAME = System.getenv("TELEGRAM_BOT_USERNAME");

@@ -2,23 +2,19 @@ package com.miti99.storescraperbot.repository;
 
 import com.miti99.storescraperbot.model.Admin;
 
-/** Đây là repository chỉ chứa 1 key duy nhất, key là "" (rỗng) */
+/** Đây là repository chỉ chứa 1 key duy nhất, key là "admin" */
 public class AdminRepository extends AbstractRepository<String, Admin> {
   public static final AdminRepository INSTANCE = new AdminRepository();
 
-  protected AdminRepository() {
-    super();
-  }
-
   public void init() {
-    init("");
+    init("admin");
   }
 
   public Admin load() {
-    return load("");
+    return load("admin");
   }
 
   public void save(Admin data) {
-    save("", data);
+    save("admin", data);
   }
 }
