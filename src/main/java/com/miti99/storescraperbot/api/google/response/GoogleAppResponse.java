@@ -48,7 +48,7 @@ public record GoogleAppResponse(
     String contentRating,
     String contentRatingDescription,
     boolean adSupported,
-    Long released,
+    String released,
     long updated,
     String version,
     String recentChanges,
