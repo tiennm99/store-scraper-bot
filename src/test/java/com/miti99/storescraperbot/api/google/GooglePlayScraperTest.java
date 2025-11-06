@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 class GooglePlayScraperTest {
   @Test
   void testApp() {
-    var request = new GoogleAppRequest("vn.kvtm.js");
+    var request = new GoogleAppRequest("pool.us");
     var response = GooglePlayScraper.app(request);
     System.out.println(GsonUtil.toJson(response));
   }
