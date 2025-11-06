@@ -56,7 +56,7 @@ public class CheckAppCommand extends BaseStoreScraperBotCommand {
     sb.append("\n");
     sb.append("<b>Google Apps:</b>\n");
     sb.append("<code>\n");
-    sb.append("%-20s | %-10s | %-4s | %-2s\n".formatted("AppId", "Updated", "Date", "OK"));
+    sb.append("%-20s | %-10s | %-4s | %-2s\n".formatted("AppId", "Updated", "Days", "OK"));
     sb.append("-".repeat(46));
     sb.append("\n");
     for (var appId : group.getGoogleApps()) {
