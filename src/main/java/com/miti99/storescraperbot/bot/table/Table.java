@@ -44,9 +44,13 @@ public class Table {
     sb.append(formater.formatted((Object[]) headers));
     var rule =
         Arrays.stream(maxWidths).mapToObj("─"::repeat).collect(Collectors.joining("─┼─", "", "\n"));
-    sb.append(rule);
+    int i = 0;
     for (var row : rows) {
+      if (i % 5 == 0) {
+        sb.append(rule);
+      }
       sb.append(formater.formatted((Object[]) row));
+      i++;
     }
     return sb.toString();
   }
