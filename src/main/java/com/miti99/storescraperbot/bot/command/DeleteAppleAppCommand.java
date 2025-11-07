@@ -40,6 +40,7 @@ public class DeleteAppleAppCommand extends BaseStoreScraperBotCommand {
 
     group.getAppleApps().removeIf(app -> appId.equals(app.appId()));
     GroupRepository.INSTANCE.save(groupId, group);
-    StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Apple app deleted successfully");
+    StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
+        chat.getId(), "Apple app deleted successfully");
   }
 }

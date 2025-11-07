@@ -1,8 +1,6 @@
 package com.miti99.storescraperbot.bot.command;
 
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
-import com.miti99.storescraperbot.repository.AdminRepository;
-import com.miti99.storescraperbot.repository.GroupRepository;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.chat.Chat;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
@@ -24,6 +22,7 @@ public class InfoCommand extends BaseStoreScraperBotCommand {
 
     long groupId = chat.getId();
 
-    StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Id của nhóm là <code>%s</code>\n".formatted(groupId));
+    StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
+        chat.getId(), "Id của nhóm là <code>%s</code>\n".formatted(groupId));
   }
 }
