@@ -22,7 +22,7 @@ configurations {
 
 dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.36")
-    implementation("com.couchbase.client:java-client:3.4.11")
+    implementation("com.couchbase.client:java-client:3.7.6")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("com.google.guava:guava:33.4.0-jre")
     implementation("org.apache.logging.log4j:log4j-core:2.24.3")
