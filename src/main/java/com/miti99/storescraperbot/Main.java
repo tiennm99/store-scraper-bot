@@ -1,7 +1,7 @@
 package com.miti99.storescraperbot;
 
 import static com.miti99.storescraperbot.config.Config.CREATOR_ID;
-import static com.miti99.storescraperbot.config.Config.SOURCE_VERSION;
+import static com.miti99.storescraperbot.config.Config.SOURCE_COMMIT;
 
 import com.miti99.storescraperbot.bot.StoreScrapeBot;
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
@@ -20,7 +20,7 @@ public class Main {
       botsApplication.registerBot(Config.TELEGRAM_BOT_TOKEN, StoreScrapeBot.INSTANCE);
       log.info("StoreScrapeBot successfully started!");
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
-          CREATOR_ID, "Bot started! Version <code>%s</code>".formatted(SOURCE_VERSION));
+          CREATOR_ID, "Bot started! Version <code>%s</code>".formatted(SOURCE_COMMIT));
       Thread.currentThread().join();
     } catch (Exception e) {
       log.error("Error while running bot", e);

@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Config {
@@ -32,8 +31,8 @@ public class Config {
           .orElse(Collections.emptyList());
   public static final long CREATOR_ID = ADMIN_IDS.getFirst();
 
-  public static final String SOURCE_VERSION =
-      Strings.isNullOrEmpty(System.getenv("SOURCE_VERSION"))
+  public static final String SOURCE_COMMIT =
+      Strings.isNullOrEmpty(System.getenv("SOURCE_COMMIT"))
           ? "unknown"
-          : System.getenv("SOURCE_VERSION");
+          : System.getenv("SOURCE_COMMIT");
 }
