@@ -1,5 +1,7 @@
 package com.miti99.storescraperbot.repository;
 
+import static com.miti99.storescraperbot.repository.AbstractSingletonRepository.COMMON_COLLECTION_NAME;
+
 import com.couchbase.client.java.Collection;
 import com.couchbase.client.java.kv.UpsertOptions;
 import com.google.common.base.CaseFormat;
@@ -10,9 +12,13 @@ import java.lang.reflect.ParameterizedType;
 import java.time.Duration;
 import lombok.extern.log4j.Log4j2;
 
+/**
+ * @param <K> class Key
+ * @param <V> class Value
+ */
 @Log4j2
 public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
-  public static final String SEPARATOR = "_";
+  protected static final String SEPARATOR = "_";
   // protected final Class<K> classK = getKeyClass();
   protected final Class<V> classV = getDataClass();
   protected final String scopeName = Environment.ENV.name().toLowerCase();
@@ -25,6 +31,10 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
 
   protected AbstractRepository() {
     collectionName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, classV.getSimpleName());
+    if (COMMON_COLLECTION_NAME.equals(collectionName)) {
+      throw new RuntimeException(
+          "Collection named '%s' is reserved".formatted(COMMON_COLLECTION_NAME));
+    }
     CouchbaseUtil.createCollection(scopeName, collectionName);
   }
 
@@ -35,8 +45,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
 
   /**
    * Lấy ra class của V. Khi tạo 1 abstract class extends AbstractRepository mà không phải final thì
-   * sẽ cần override hàm này phù hợp<br>
-   * Chi tiết có thể tìm hiểu thêm về getGenericSuperclass và getParameterizedClass<br>
+   * sẽ cần override hàm này phù hợp
    *
    * @return Class&lt;V&gt;
    */
@@ -56,7 +65,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
     return 0;
   }
 
-  public void init(K key) {
+  protected void init(K key) {
     try {
       if (exist(key)) {
         return;
@@ -73,7 +82,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
     return String.valueOf(key);
   }
 
-  public void save(K key, V data) {
+  protected void save(K key, V data) {
     var databaseKey = getDatabaseKey(key);
     try {
       if (getExpireSeconds() == 0) {
@@ -88,7 +97,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
     }
   }
 
-  public boolean exist(K key) {
+  protected boolean exist(K key) {
     var databaseKey = getDatabaseKey(key);
     try {
       return collection().exists(databaseKey).exists();
@@ -98,7 +107,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
     }
   }
 
-  public V load(K key) {
+  protected V load(K key) {
     var databaseKey = getDatabaseKey(key);
     try {
       var getResult = collection().get(databaseKey);
@@ -112,7 +121,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
     }
   }
 
-  public void delete(K key) {
+  protected void delete(K key) {
     var databaseKey = getDatabaseKey(key);
     try {
       collection().remove(databaseKey);
