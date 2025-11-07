@@ -11,4 +11,11 @@ class AppStoreScraperTest {
     var response = AppStoreScraper.app(request);
     System.out.println(GsonUtil.toJson(response));
   }
+
+  @Test
+  void testComMPTBuraco() {
+    var request = new AppleAppRequest("com.mpt.buraco", "mx");
+    var response = AppStoreScraper.app(request);
+    System.out.println(GsonUtil.toJson(response));
+  }
 }

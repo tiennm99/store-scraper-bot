@@ -11,4 +11,11 @@ class GooglePlayScraperTest {
     var response = GooglePlayScraper.app(request);
     System.out.println(GsonUtil.toJson(response));
   }
+
+  @Test
+  void testComZingplayBuracoMX() {
+    var request = new GoogleAppRequest("com.zingplay.buraco.mx", "mx");
+    var response = GooglePlayScraper.app(request);
+    System.out.println(GsonUtil.toJson(response));
+  }
 }
