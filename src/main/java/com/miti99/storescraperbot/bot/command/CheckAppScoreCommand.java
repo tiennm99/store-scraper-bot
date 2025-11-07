@@ -42,8 +42,9 @@ public class CheckAppScoreCommand extends BaseStoreScraperBotCommand {
     sb.append("\n");
     for (var app : group.getAppleApps()) {
       var appId = app.appId();
-      double score = AppStoreScraper.getAppScore(appId);
-      long ratings = AppStoreScraper.getAppRatings(appId);
+      var country = app.country();
+      double score = AppStoreScraper.getAppScore(appId, country);
+      long ratings = AppStoreScraper.getAppRatings(appId, country);
       sb.append("%-20s | %-10s | %-10s\n".formatted(appId, score, ratings));
     }
     sb.append("</code>\n");

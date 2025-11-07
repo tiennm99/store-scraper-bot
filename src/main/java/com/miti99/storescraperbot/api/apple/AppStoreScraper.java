@@ -43,13 +43,13 @@ public class AppStoreScraper {
     }
   }
 
-  public static AppleAppResponse getResponse(String appId) {
+  public static AppleAppResponse getResponse(String appId, String country) {
     boolean isInCache = AppleAppRepository.INSTANCE.exist(appId);
     if (isInCache) {
       var app = AppleAppRepository.INSTANCE.load(appId);
       return app.getApp();
     } else {
-      var response = app(new AppleAppRequest(appId));
+      var response = app(new AppleAppRequest(appId, country));
       AppleAppRepository.INSTANCE.init(appId);
       var app = AppleAppRepository.INSTANCE.load(appId);
       app.setApp(response);
@@ -58,8 +58,8 @@ public class AppStoreScraper {
     }
   }
 
-  public static LocalDate getAppUpdated(String appId) {
-    var response = getResponse(appId);
+  public static LocalDate getAppUpdated(String appId, String country) {
+    var response = getResponse(appId, country);
     if (response == null) {
       log.error("response is null");
       return LocalDate.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
@@ -67,8 +67,8 @@ public class AppStoreScraper {
     return LocalDate.ofInstant(Instant.parse(response.updated()), ZoneId.systemDefault());
   }
 
-  public static double getAppScore(String appId) {
-    var response = getResponse(appId);
+  public static double getAppScore(String appId, String country) {
+    var response = getResponse(appId, country);
     if (response == null) {
       log.error("response is null");
       return 0.0;
@@ -76,8 +76,8 @@ public class AppStoreScraper {
     return response.score();
   }
 
-  public static long getAppReviews(String appId) {
-    var response = getResponse(appId);
+  public static long getAppReviews(String appId, String country) {
+    var response = getResponse(appId, country);
     if (response == null) {
       log.error("response is null");
       return 0L;
@@ -85,8 +85,8 @@ public class AppStoreScraper {
     return response.reviews();
   }
 
-  public static long getAppRatings(String appId) {
-    var response = getResponse(appId);
+  public static long getAppRatings(String appId, String country) {
+    var response = getResponse(appId, country);
     if (response == null) {
       log.error("response is null");
       return 0L;

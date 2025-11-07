@@ -19,7 +19,7 @@ public class AddAppleAppCommand extends BaseStoreScraperBotCommand {
   AddAppleAppCommand() {
     super(
         "addapple",
-        "<id/appId>. Thêm Apple app vào danh sách theo dõi của nhóm. id: <i>iTunes 'trackId'</i>, appId: <i>iTunes 'bundleId'</i>");
+        "<id/appId> [country]. Thêm Apple app vào danh sách theo dõi của nhóm. id: <i>iTunes 'trackId'</i>, appId: <i>iTunes 'bundleId'</i>. Một số app cần country để hoạt động đúng, country mặc định là 'vn'");
   }
 
   @Override
@@ -39,6 +39,7 @@ public class AddAppleAppCommand extends BaseStoreScraperBotCommand {
 
     var appId = arguments[0];
     long id = -1;
+    var country = arguments.length == 2 ? arguments[1] : "vn";
     AppleAppResponse response = null;
     try {
       try {
@@ -47,9 +48,9 @@ public class AddAppleAppCommand extends BaseStoreScraperBotCommand {
         // Input không phải id, bỏ qua
       }
       if (id != -1) {
-        response = AppStoreScraper.app(new AppleAppRequest(id));
+        response = AppStoreScraper.app(new AppleAppRequest(id, country));
       } else {
-        response = AppStoreScraper.app(new AppleAppRequest(appId));
+        response = AppStoreScraper.app(new AppleAppRequest(appId, country));
       }
     } catch (Exception e) {
       log.error("request app error for appId: '{}', id: '{}'", appId, id, e);
@@ -69,9 +70,11 @@ public class AddAppleAppCommand extends BaseStoreScraperBotCommand {
       return;
     }
 
-    group.getAppleApps().add(new AppleAppInfo(appId));
+    group.getAppleApps().add(new AppleAppInfo(appId, country));
     GroupRepository.INSTANCE.save(groupId, group);
     StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
-        chat.getId(), "Apple app <code>%s</code> added successfully".formatted(appId));
+        chat.getId(),
+        "Apple app <code>%s</code>, country <b>%s</b> added successfully"
+            .formatted(appId, country));
   }
 }

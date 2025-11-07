@@ -61,6 +61,8 @@ public class AddGoogleAppCommand extends BaseStoreScraperBotCommand {
     group.getGoogleApps().add(new GoogleAppInfo(appId, country));
     GroupRepository.INSTANCE.save(groupId, group);
     StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
-        chat.getId(), "Google app <code>%s</code> added successfully".formatted(appId));
+        chat.getId(),
+        "Google app <code>%s</code>, country <b>%s</b> added successfully"
+            .formatted(appId, country));
   }
 }

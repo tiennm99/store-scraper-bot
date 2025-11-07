@@ -35,13 +35,13 @@ public class ListAppCommand extends BaseStoreScraperBotCommand {
     var sb = new StringBuilder();
     sb.append("<b>Apple Apps:</b>\n");
     sb.append("<code>\n");
-    sb.append("%-2s | %-20s\n".formatted("#", "AppId"));
+    sb.append("%-2s | %-20s | %-7s\n".formatted("#", "AppId", "Country"));
     sb.append("-".repeat(25));
     sb.append("\n");
     int i = 0;
     for (var app : group.getAppleApps()) {
       i++;
-      sb.append("%-2d | %-20s\n".formatted(i,app.appId()));
+      sb.append("%-2s | %-20s | %-7s\n".formatted(i, app.appId(), app.country()));
     }
     sb.append("</code>\n");
     sb.append("\n");

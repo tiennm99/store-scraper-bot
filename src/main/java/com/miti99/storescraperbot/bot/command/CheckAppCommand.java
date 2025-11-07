@@ -46,7 +46,7 @@ public class CheckAppCommand extends BaseStoreScraperBotCommand {
     sb.append("\n");
     for (var app : group.getAppleApps()) {
       var appId = app.appId();
-      var updated = AppStoreScraper.getAppUpdated(appId);
+      var updated = AppStoreScraper.getAppUpdated(appId, app.country());
       long days = ChronoUnit.DAYS.between(updated, now);
       boolean passed = days <= Constant.NUM_DAYS_WARNING_NOT_UPDATED;
       sb.append(

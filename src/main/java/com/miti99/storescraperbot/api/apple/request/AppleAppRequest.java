@@ -1,24 +1,9 @@
 package com.miti99.storescraperbot.api.apple.request;
 
-public record AppleAppRequest(
-    Long id,
-    String appId,
-    String country, // Tạm thời chưa cần phân biệt
-    Boolean ratings) {
-  public AppleAppRequest(String appId) {
-    this(
-        null,
-        appId,
-        "vn",
-        true);
-  }
+public record AppleAppRequest(Long id, String appId, String country, Boolean ratings) {
 
-  public AppleAppRequest(Long id) {
-    this(
-        id,
-        null,
-        "vn",
-        true);
+  public AppleAppRequest(Long id, String country) {
+    this(id, null, country, true);
   }
 
   public AppleAppRequest(String appId, String country) {
