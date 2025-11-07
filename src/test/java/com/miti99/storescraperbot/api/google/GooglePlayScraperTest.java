@@ -6,15 +6,22 @@ import org.junit.jupiter.api.Test;
 
 class GooglePlayScraperTest {
   @Test
-  void testApp() {
+  void PoolUs() {
     var request = new GoogleAppRequest("pool.us");
     var response = GooglePlayScraper.app(request);
     System.out.println(GsonUtil.toJson(response));
   }
 
   @Test
-  void testComZingplayBuracoMX() {
+  void testComZingplayBuracoMx() {
     var request = new GoogleAppRequest("com.zingplay.buraco.mx", "mx");
+    var response = GooglePlayScraper.app(request);
+    System.out.println(GsonUtil.toJson(response));
+  }
+
+  @Test
+  void testComZingplayDoudizhu() {
+    var request = new GoogleAppRequest("com.zingplay.doudizhu", "hk");
     var response = GooglePlayScraper.app(request);
     System.out.println(GsonUtil.toJson(response));
   }

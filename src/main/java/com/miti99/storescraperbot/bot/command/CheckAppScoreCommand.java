@@ -3,6 +3,7 @@ package com.miti99.storescraperbot.bot.command;
 import com.miti99.storescraperbot.api.apple.AppStoreScraper;
 import com.miti99.storescraperbot.api.google.GooglePlayScraper;
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
+import com.miti99.storescraperbot.bot.table.Table;
 import com.miti99.storescraperbot.repository.AdminRepository;
 import com.miti99.storescraperbot.repository.GroupRepository;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -37,32 +38,29 @@ public class CheckAppScoreCommand extends BaseStoreScraperBotCommand {
     var sb = new StringBuilder();
     sb.append("<b>Apple Apps:</b>\n");
     sb.append("<code>\n");
-    sb.append("%-20s | %-10s | %-10s\n".formatted("AppId", "Score", "Ratings"));
-    sb.append("-".repeat(43));
-    sb.append("\n");
+    var appleTable = new Table("AppId", "Score", "Ratings");
     for (var app : group.getAppleApps()) {
       var appId = app.appId();
       var country = app.country();
       double score = AppStoreScraper.getAppScore(appId, country);
       long ratings = AppStoreScraper.getAppRatings(appId, country);
-      sb.append("%-20s | %-10s | %-10s\n".formatted(appId, score, ratings));
+      appleTable.addRow(appId, score, ratings);
     }
+    sb.append(appleTable);
     sb.append("</code>\n");
-    sb.append("\n");
+
     sb.append("<b>Google Apps:</b>\n");
     sb.append("<code>\n");
-    sb.append("%-20s | %-10s | %-10s\n".formatted("AppId", "Score", "Ratings"));
-    sb.append("-".repeat(43));
-    sb.append("\n");
+    var googleTable = new Table("AppId", "Score", "Ratings");
     for (var app : group.getGoogleApps()) {
       var appId = app.appId();
       var country = app.country();
       double score = GooglePlayScraper.getAppScore(appId, country);
       long ratings = GooglePlayScraper.getAppRatings(appId, country);
-      sb.append("%-20s | %-10s | %-10s\n".formatted(appId, score, ratings));
+      googleTable.addRow(appId, score, ratings);
     }
+    sb.append(googleTable);
     sb.append("</code>");
-    sb.append("\n");
 
     StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), sb.toString());
   }

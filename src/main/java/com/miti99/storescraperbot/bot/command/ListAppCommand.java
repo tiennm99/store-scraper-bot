@@ -1,6 +1,7 @@
 package com.miti99.storescraperbot.bot.command;
 
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
+import com.miti99.storescraperbot.bot.table.Table;
 import com.miti99.storescraperbot.repository.AdminRepository;
 import com.miti99.storescraperbot.repository.GroupRepository;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -35,29 +36,25 @@ public class ListAppCommand extends BaseStoreScraperBotCommand {
     var sb = new StringBuilder();
     sb.append("<b>Apple Apps:</b>\n");
     sb.append("<code>\n");
-    sb.append("%-2s | %-20s | %-7s\n".formatted("#", "AppId", "Country"));
-    sb.append("-".repeat(25));
-    sb.append("\n");
+    var appleTable = new Table("#", "AppId", "Country");
     int i = 0;
     for (var app : group.getAppleApps()) {
       i++;
-      sb.append("%-2s | %-20s | %-7s\n".formatted(i, app.appId(), app.country()));
+      appleTable.addRow(i, app.appId(), app.country());
     }
+    sb.append(appleTable);
     sb.append("</code>\n");
-    sb.append("\n");
 
-    sb.append("\n<b>Google Apps:</b>\n");
+    sb.append("<b>Google Apps:</b>\n");
     sb.append("<code>\n");
-    sb.append("%-2s | %-20s | %-7s\n".formatted("#", "AppId", "Country"));
-    sb.append("-".repeat(35));
-    sb.append("\n");
+    var googleTable = new Table("#", "AppId", "Country");
     i = 0;
     for (var app : group.getGoogleApps()) {
       i++;
-      sb.append("%-2s | %-20s | %-7s\n".formatted(i, app.appId(), app.country()));
+      googleTable.addRow(i, app.appId(), app.country());
     }
-    sb.append("</code>\n");
-    sb.append("\n");
+    sb.append(googleTable);
+    sb.append("</code>");
 
     StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), sb.toString());
   }

@@ -3,7 +3,7 @@ package com.miti99.storescraperbot.repository;
 import com.couchbase.client.java.Collection;
 import com.couchbase.client.java.kv.UpsertOptions;
 import com.google.common.base.CaseFormat;
-import com.miti99.storescraperbot.config.Config;
+import com.miti99.storescraperbot.env.Environment;
 import com.miti99.storescraperbot.model.AbstractModel;
 import com.miti99.storescraperbot.util.CouchbaseUtil;
 import java.lang.reflect.ParameterizedType;
@@ -15,7 +15,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   public static final String SEPARATOR = "_";
   // protected final Class<K> classK = getKeyClass();
   protected final Class<V> classV = getDataClass();
-  protected final String scopeName = Config.ENV.name().toLowerCase();
+  protected final String scopeName = Environment.ENV.name().toLowerCase();
   protected final String collectionName;
 
   protected AbstractRepository(String collectionName) {

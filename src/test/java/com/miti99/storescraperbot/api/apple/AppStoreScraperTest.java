@@ -6,15 +6,22 @@ import org.junit.jupiter.api.Test;
 
 class AppStoreScraperTest {
   @Test
-  void testApp() {
-    var request = new AppleAppRequest("com.mpt.kvtm");
+  void testComMptKvtm() {
+    var request = new AppleAppRequest("com.mpt.kvtm", "vn");
     var response = AppStoreScraper.app(request);
     System.out.println(GsonUtil.toJson(response));
   }
 
   @Test
-  void testComMPTBuraco() {
+  void testComMptBuraco() {
     var request = new AppleAppRequest("com.mpt.buraco", "mx");
+    var response = AppStoreScraper.app(request);
+    System.out.println(GsonUtil.toJson(response));
+  }
+
+  @Test
+  void testComMptDoudizhu() {
+    var request = new AppleAppRequest("com.mpt.doudizhu", "hk");
     var response = AppStoreScraper.app(request);
     System.out.println(GsonUtil.toJson(response));
   }

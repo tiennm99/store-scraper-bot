@@ -1,4 +1,4 @@
-package com.miti99.storescraperbot.config;
+package com.miti99.storescraperbot.env;
 
 import com.google.common.base.Strings;
 import com.miti99.storescraperbot.type.Env;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class Config {
+public class Environment {
   public static final String COUCHBASE_CONNECTION_STRING =
       System.getenv("COUCHBASE_CONNECTION_STRING");
   public static final String COUCHBASE_USERNAME = System.getenv("COUCHBASE_USERNAME");

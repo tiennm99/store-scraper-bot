@@ -1,6 +1,6 @@
 package com.miti99.storescraperbot.bot;
 
-import com.miti99.storescraperbot.config.Config;
+import com.miti99.storescraperbot.env.Environment;
 import lombok.extern.log4j.Log4j2;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -11,7 +11,7 @@ public class StoreScrapeBotTelegramClient extends OkHttpTelegramClient {
   public static final StoreScrapeBotTelegramClient INSTANCE = new StoreScrapeBotTelegramClient();
 
   public StoreScrapeBotTelegramClient() {
-    super(Config.TELEGRAM_BOT_TOKEN);
+    super(Environment.TELEGRAM_BOT_TOKEN);
   }
 
   public void sendMessage(long chatId, String text) {

@@ -1,9 +1,9 @@
 package com.miti99.storescraperbot.util;
 
-import static com.miti99.storescraperbot.config.Config.COUCHBASE_BUCKET_NAME;
-import static com.miti99.storescraperbot.config.Config.COUCHBASE_CONNECTION_STRING;
-import static com.miti99.storescraperbot.config.Config.COUCHBASE_PASSWORD;
-import static com.miti99.storescraperbot.config.Config.COUCHBASE_USERNAME;
+import static com.miti99.storescraperbot.env.Environment.COUCHBASE_BUCKET_NAME;
+import static com.miti99.storescraperbot.env.Environment.COUCHBASE_CONNECTION_STRING;
+import static com.miti99.storescraperbot.env.Environment.COUCHBASE_PASSWORD;
+import static com.miti99.storescraperbot.env.Environment.COUCHBASE_USERNAME;
 
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;

@@ -1,6 +1,6 @@
 package com.miti99.storescraperbot.bot;
 
-import com.miti99.storescraperbot.config.Config;
+import com.miti99.storescraperbot.env.Environment;
 import java.util.function.Supplier;
 
 public class StoreScrapeBotUsernameSupplier implements Supplier<String> {
@@ -9,6 +9,6 @@ public class StoreScrapeBotUsernameSupplier implements Supplier<String> {
 
   @Override
   public String get() {
-    return Config.TELEGRAM_BOT_USERNAME;
+    return Environment.TELEGRAM_BOT_USERNAME;
   }
 }

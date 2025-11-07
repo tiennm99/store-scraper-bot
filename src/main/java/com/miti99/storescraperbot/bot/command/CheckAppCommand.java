@@ -3,6 +3,7 @@ package com.miti99.storescraperbot.bot.command;
 import com.miti99.storescraperbot.api.apple.AppStoreScraper;
 import com.miti99.storescraperbot.api.google.GooglePlayScraper;
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
+import com.miti99.storescraperbot.bot.table.Table;
 import com.miti99.storescraperbot.constant.Constant;
 import com.miti99.storescraperbot.repository.AdminRepository;
 import com.miti99.storescraperbot.repository.GroupRepository;
@@ -41,34 +42,31 @@ public class CheckAppCommand extends BaseStoreScraperBotCommand {
     var sb = new StringBuilder();
     sb.append("<b>Apple Apps:</b>\n");
     sb.append("<code>\n");
-    sb.append("%-20s | %-10s | %-4s | %-2s\n".formatted("AppId", "Updated", "Days", "OK"));
-    sb.append("-".repeat(46));
-    sb.append("\n");
+    var appleTable = new Table("AppId", "Updated", "Days", "OK");
     for (var app : group.getAppleApps()) {
       var appId = app.appId();
       var updated = AppStoreScraper.getAppUpdated(appId, app.country());
       long days = ChronoUnit.DAYS.between(updated, now);
       boolean passed = days <= Constant.NUM_DAYS_WARNING_NOT_UPDATED;
-      sb.append(
-          "%-20s | %-10s | %-4s | %-2s\n".formatted(appId, updated, days, passed ? "✅" : "❌"));
+      var icon = passed ? "✅" : "❌";
+      appleTable.addRow(appId, updated, days, icon);
     }
+    sb.append(appleTable);
     sb.append("</code>\n");
-    sb.append("\n");
+
     sb.append("<b>Google Apps:</b>\n");
     sb.append("<code>\n");
-    sb.append("%-20s | %-10s | %-4s | %-2s\n".formatted("AppId", "Updated", "Days", "OK"));
-    sb.append("-".repeat(46));
-    sb.append("\n");
+    var googleTable = new Table("AppId", "Updated", "Days", "OK");
     for (var app : group.getGoogleApps()) {
       var appId = app.appId();
       var updated = GooglePlayScraper.getLastUpdateOfApp(appId, app.country());
       long days = ChronoUnit.DAYS.between(updated, now);
       boolean passed = days <= Constant.NUM_DAYS_WARNING_NOT_UPDATED;
-      sb.append(
-          "%-20s | %-10s | %-4s | %-2s\n".formatted(appId, updated, days, passed ? "✅" : "❌"));
+      var icon = passed ? "✅" : "❌";
+      googleTable.addRow(appId, updated, days, icon);
     }
+    sb.append(googleTable);
     sb.append("</code>");
-    sb.append("\n");
 
     StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), sb.toString());
   }

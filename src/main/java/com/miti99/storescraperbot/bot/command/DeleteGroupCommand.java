@@ -1,7 +1,7 @@
 package com.miti99.storescraperbot.bot.command;
 
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
-import com.miti99.storescraperbot.config.Config;
+import com.miti99.storescraperbot.env.Environment;
 import com.miti99.storescraperbot.repository.AdminRepository;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.chat.Chat;
@@ -17,7 +17,7 @@ public class DeleteGroupCommand extends BaseStoreScraperBotCommand {
   @Override
   protected void executeCommand(
       TelegramClient telegramClient, User user, Chat chat, String[] arguments) {
-    if (!Config.ADMIN_IDS.contains(user.getId())) {
+    if (!Environment.ADMIN_IDS.contains(user.getId())) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "You are not admin");
       return;
     }
