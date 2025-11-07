@@ -1,8 +1,10 @@
 package com.miti99.storescraperbot.config;
 
+import com.google.common.base.Strings;
 import com.miti99.storescraperbot.type.Env;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -18,7 +20,7 @@ public class Config {
   public static final String TELEGRAM_BOT_USERNAME = System.getenv("TELEGRAM_BOT_USERNAME");
 
   public static final Env ENV = Env.valueOf(System.getenv("ENV"));
-  public static final Set<Long> ADMIN_IDS =
+  public static final List<Long> ADMIN_IDS =
       Optional.ofNullable(System.getenv("ADMIN_IDS"))
           .map(
               v ->
@@ -26,6 +28,12 @@ public class Config {
                       .map(String::trim)
                       .filter(s -> !s.isEmpty())
                       .map(Long::parseLong)
-                      .collect(Collectors.toSet()))
-          .orElse(Collections.emptySet());
+                      .collect(Collectors.toList()))
+          .orElse(Collections.emptyList());
+  public static final long CREATOR_ID = ADMIN_IDS.getFirst();
+
+  public static final String SOURCE_VERSION =
+      Strings.isNullOrEmpty(System.getenv("SOURCE_VERSION"))
+          ? "unknown"
+          : System.getenv("SOURCE_VERSION");
 }
