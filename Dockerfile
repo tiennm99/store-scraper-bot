@@ -30,4 +30,4 @@ RUN adduser \
 USER appuser
 WORKDIR /app
 COPY --from=package /build/build/libs/app.jar app.jar
-ENTRYPOINT ["java", "${JAVA_OPTS}", "-jar" "app.jar"]
+ENTRYPOINT [ "java", "${JAVA_OPTS}", "-jar" "app.jar" ]
