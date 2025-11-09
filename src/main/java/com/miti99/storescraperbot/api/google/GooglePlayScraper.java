@@ -24,7 +24,7 @@ public class GooglePlayScraper {
   public static final String BASE_URL = "https://miti-google-play-scraper.vercel.app/";
 
   @SneakyThrows
-  public static GoogleAppResponse app(GoogleAppRequest request) {
+  public static String rawApp(GoogleAppRequest request) {
     var httpRequest =
         HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL + "/app"))
@@ -38,12 +38,18 @@ public class GooglePlayScraper {
             // .connectTimeout(Duration.ofMillis(TIMEOUT))
             .followRedirects(Redirect.NORMAL)
             .build()) {
-      var body = httpClient.send(httpRequest, BodyHandlers.ofString()).body();
-      return GsonUtil.fromJson(body, GoogleAppResponse.class);
+      return httpClient.send(httpRequest, BodyHandlers.ofString()).body();
+    } catch (Exception e) {
+      log.error("rawAppResponse error - request: '{}'", GsonUtil.toJson(request), e);
+      return null;
     }
   }
 
-  private static GoogleAppResponse getResponse(String appId, String country) {
+  public static GoogleAppResponse app(GoogleAppRequest request) {
+    return GsonUtil.fromJson(rawApp(request), GoogleAppResponse.class);
+  }
+
+  private static GoogleAppResponse getAppResponse(String appId, String country) {
     boolean isInCache = GoogleAppRepository.INSTANCE.exist(appId);
     if (isInCache) {
       var app = GoogleAppRepository.INSTANCE.load(appId);
@@ -59,7 +65,7 @@ public class GooglePlayScraper {
   }
 
   public static LocalDate getLastUpdateOfApp(String appId, String country) {
-    var response = getResponse(appId, country);
+    var response = getAppResponse(appId, country);
     long lastUpdateMillis = 0;
     if (response != null) {
       lastUpdateMillis = response.updated();
@@ -70,7 +76,7 @@ public class GooglePlayScraper {
   }
 
   public static double getAppScore(String appId, String country) {
-    var response = getResponse(appId, country);
+    var response = getAppResponse(appId, country);
     if (response == null) {
       log.error("response is null");
       return 0.0;
@@ -79,7 +85,7 @@ public class GooglePlayScraper {
   }
 
   public static long getAppRatings(String appId, String country) {
-    var response = getResponse(appId, country);
+    var response = getAppResponse(appId, country);
     if (response == null) {
       log.error("response is null");
       return 0L;

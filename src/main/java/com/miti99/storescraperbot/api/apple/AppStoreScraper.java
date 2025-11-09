@@ -24,7 +24,7 @@ public class AppStoreScraper {
   public static final String BASE_URL = "https://miti-app-store-scraper.vercel.app/";
 
   @SneakyThrows
-  public static AppleAppResponse app(AppleAppRequest request) {
+  public static String rawApp(AppleAppRequest request) {
     var httpRequest =
         HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL + "/app"))
@@ -38,12 +38,19 @@ public class AppStoreScraper {
             .followRedirects(Redirect.NORMAL)
             // .connectTimeout(Duration.ofMillis(TIMEOUT))
             .build()) {
-      var body = httpClient.send(httpRequest, BodyHandlers.ofString()).body();
-      return GsonUtil.fromJson(body, AppleAppResponse.class);
+      return httpClient.send(httpRequest, BodyHandlers.ofString()).body();
+    } catch (Exception e) {
+      log.error("rawAppResponse error - request: '{}'", GsonUtil.toJson(request), e);
+      return null;
     }
   }
 
-  public static AppleAppResponse getResponse(String appId, String country) {
+  @SneakyThrows
+  public static AppleAppResponse app(AppleAppRequest request) {
+    return GsonUtil.fromJson(rawApp(request), AppleAppResponse.class);
+  }
+
+  public static AppleAppResponse getAppResponse(String appId, String country) {
     boolean isInCache = AppleAppRepository.INSTANCE.exist(appId);
     if (isInCache) {
       var app = AppleAppRepository.INSTANCE.load(appId);
@@ -59,7 +66,7 @@ public class AppStoreScraper {
   }
 
   public static LocalDate getAppUpdated(String appId, String country) {
-    var response = getResponse(appId, country);
+    var response = getAppResponse(appId, country);
     if (response == null) {
       log.error("response is null");
       return LocalDate.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
@@ -68,7 +75,7 @@ public class AppStoreScraper {
   }
 
   public static double getAppScore(String appId, String country) {
-    var response = getResponse(appId, country);
+    var response = getAppResponse(appId, country);
     if (response == null) {
       log.error("response is null");
       return 0.0;
@@ -77,7 +84,7 @@ public class AppStoreScraper {
   }
 
   public static long getAppReviews(String appId, String country) {
-    var response = getResponse(appId, country);
+    var response = getAppResponse(appId, country);
     if (response == null) {
       log.error("response is null");
       return 0L;
@@ -86,7 +93,7 @@ public class AppStoreScraper {
   }
 
   public static long getAppRatings(String appId, String country) {
-    var response = getResponse(appId, country);
+    var response = getAppResponse(appId, country);
     if (response == null) {
       log.error("response is null");
       return 0L;

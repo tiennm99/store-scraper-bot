@@ -15,6 +15,8 @@ import com.miti99.storescraperbot.bot.command.DeleteGroupCommand;
 import com.miti99.storescraperbot.bot.command.InfoCommand;
 import com.miti99.storescraperbot.bot.command.ListAppCommand;
 import com.miti99.storescraperbot.bot.command.ListGroupCommand;
+import com.miti99.storescraperbot.bot.command.RawAppleAppCommand;
+import com.miti99.storescraperbot.bot.command.RawGoogleAppCommand;
 import com.miti99.storescraperbot.bot.entity.NonUpdatedApp;
 import com.miti99.storescraperbot.bot.table.Table;
 import com.miti99.storescraperbot.constant.Constant;
@@ -39,6 +41,9 @@ public class StoreScrapeBot extends CommandLongPollingTelegramBot {
   StoreScrapeBot() {
     super(StoreScrapeBotTelegramClient.INSTANCE, true, StoreScrapeBotUsernameSupplier.INSTANCE);
     register(InfoCommand.INSTANCE);
+
+    register(RawAppleAppCommand.INSTANCE);
+    register(RawGoogleAppCommand.INSTANCE);
 
     register(AddGroupCommand.INSTANCE);
     register(DeleteGroupCommand.INSTANCE);
