@@ -26,6 +26,7 @@ dependencies {
     implementation("com.couchbase.client:java-client:3.7.6")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("com.google.guava:guava:33.4.0-jre")
+    implementation("org.apache.commons:commons-math3:3.6.1")
     implementation("org.apache.logging.log4j:log4j-core:2.24.3")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.24.3")
     implementation("org.telegram:telegrambots-client:8.0.0")
