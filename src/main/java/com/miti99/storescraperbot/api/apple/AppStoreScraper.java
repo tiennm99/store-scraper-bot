@@ -83,15 +83,6 @@ public class AppStoreScraper {
     return response.score();
   }
 
-  public static String getAppScoreText(String appId, String country) {
-    var response = getAppResponse(appId, country);
-    if (response == null) {
-      log.error("response is null");
-      return "";
-    }
-    return response.scoreText();
-  }
-
   public static long getAppReviews(String appId, String country) {
     var response = getAppResponse(appId, country);
     if (response == null) {
