@@ -84,6 +84,15 @@ public class GooglePlayScraper {
     return response.score();
   }
 
+  public static String getAppScoreText(String appId, String country) {
+    var response = getAppResponse(appId, country);
+    if (response == null) {
+      log.error("response is null");
+      return "";
+    }
+    return response.scoreText();
+  }
+
   public static long getAppRatings(String appId, String country) {
     var response = getAppResponse(appId, country);
     if (response == null) {
