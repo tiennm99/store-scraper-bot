@@ -28,7 +28,7 @@ public class ListGroupCommand extends BaseStoreScraperBotCommand {
     }
 
     var admin = AdminRepository.INSTANCE.load();
-    var groups = admin.groups();
+    var groups = admin.getGroups();
     var sb = new StringBuilder();
     sb.append("<b>Groups:</b>\n");
     for (var groupId : groups) {

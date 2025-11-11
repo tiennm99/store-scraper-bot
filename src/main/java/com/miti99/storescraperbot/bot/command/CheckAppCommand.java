@@ -1,7 +1,7 @@
 package com.miti99.storescraperbot.bot.command;
 
-import com.miti99.storescraperbot.api.old.apple.AppStoreScraper;
-import com.miti99.storescraperbot.api.old.google.GooglePlayScraper;
+import com.miti99.storescraperbot.api.apple.AppStoreScraper;
+import com.miti99.storescraperbot.api.google.GooglePlayScraper;
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
 import com.miti99.storescraperbot.bot.table.Table;
 import com.miti99.storescraperbot.constant.Constant;
@@ -24,7 +24,7 @@ public class CheckAppCommand extends BaseStoreScraperBotCommand {
   protected void executeCommand(
       TelegramClient telegramClient, User user, Chat chat, String[] arguments) {
     var admin = AdminRepository.INSTANCE.load();
-    if (!admin.groups().contains(chat.getId())) {
+    if (!admin.getGroups().contains(chat.getId())) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
           chat.getId(), "Group is not allowed to use bot");
       return;
@@ -43,7 +43,7 @@ public class CheckAppCommand extends BaseStoreScraperBotCommand {
     sb.append("<b>Apple Apps:</b>\n");
     sb.append("<code>\n");
     var appleTable = new Table("AppId", "Updated", "Days", "OK");
-    for (var app : group.appleApps()) {
+    for (var app : group.getAppleApps()) {
       var appId = app.appId();
       var updated = AppStoreScraper.getAppUpdated(appId, app.country());
       long days = ChronoUnit.DAYS.between(updated, now);
@@ -57,7 +57,7 @@ public class CheckAppCommand extends BaseStoreScraperBotCommand {
     sb.append("<b>Google Apps:</b>\n");
     sb.append("<code>\n");
     var googleTable = new Table("AppId", "Updated", "Days", "OK");
-    for (var app : group.googleApps()) {
+    for (var app : group.getGoogleApps()) {
       var appId = app.appId();
       var updated = GooglePlayScraper.getLastUpdateOfApp(appId, app.country());
       long days = ChronoUnit.DAYS.between(updated, now);

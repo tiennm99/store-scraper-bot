@@ -1,27 +1,28 @@
 package com.miti99.storescraperbot.api.apple;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import com.miti99.storescraperbot.api.apple.request.AppleAppRequest;
 import com.miti99.storescraperbot.util.GsonUtil;
 import org.junit.jupiter.api.Test;
 
 class AppStoreScraperTest {
   @Test
   void testComMptKvtm() {
-    var response = AppStoreScraper.app("com.mpt.kvtm");
+    var request = new AppleAppRequest("com.mpt.kvtm", "vn");
+    var response = AppStoreScraper.app(request);
     System.out.println(GsonUtil.toJson(response));
   }
 
   @Test
   void testComMptBuraco() {
-    // var response = AppStoreScraper.app("com.mpt.buraco");
-    var response = AppStoreScraper.app(1638264682);
+    var request = new AppleAppRequest("com.mpt.buraco", "mx");
+    var response = AppStoreScraper.app(request);
     System.out.println(GsonUtil.toJson(response));
   }
 
   @Test
   void testComMptDoudizhu() {
-    var response = AppStoreScraper.app("com.mpt.doudizhu");
+    var request = new AppleAppRequest("com.mpt.doudizhu", "hk");
+    var response = AppStoreScraper.app(request);
     System.out.println(GsonUtil.toJson(response));
   }
 }

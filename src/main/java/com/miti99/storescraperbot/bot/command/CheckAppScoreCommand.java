@@ -1,7 +1,7 @@
 package com.miti99.storescraperbot.bot.command;
 
-import com.miti99.storescraperbot.api.old.apple.AppStoreScraper;
-import com.miti99.storescraperbot.api.old.google.GooglePlayScraper;
+import com.miti99.storescraperbot.api.apple.AppStoreScraper;
+import com.miti99.storescraperbot.api.google.GooglePlayScraper;
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
 import com.miti99.storescraperbot.bot.table.Table;
 import com.miti99.storescraperbot.repository.AdminRepository;
@@ -23,7 +23,7 @@ public class CheckAppScoreCommand extends BaseStoreScraperBotCommand {
   protected void executeCommand(
       TelegramClient telegramClient, User user, Chat chat, String[] arguments) {
     var admin = AdminRepository.INSTANCE.load();
-    if (!admin.groups().contains(chat.getId())) {
+    if (!admin.getGroups().contains(chat.getId())) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
           chat.getId(), "Group is not allowed to use bot");
       return;
@@ -41,7 +41,7 @@ public class CheckAppScoreCommand extends BaseStoreScraperBotCommand {
     sb.append("<b>Apple Apps:</b>\n");
     sb.append("<code>\n");
     var appleTable = new Table("AppId", "Score", "Ratings");
-    for (var app : group.appleApps()) {
+    for (var app : group.getAppleApps()) {
       var appId = app.appId();
       var country = app.country();
       double score =
@@ -55,7 +55,7 @@ public class CheckAppScoreCommand extends BaseStoreScraperBotCommand {
     sb.append("<b>Google Apps:</b>\n");
     sb.append("<code>\n");
     var googleTable = new Table("AppId", "Score", "Ratings");
-    for (var app : group.googleApps()) {
+    for (var app : group.getGoogleApps()) {
       var appId = app.appId();
       var country = app.country();
       double score =

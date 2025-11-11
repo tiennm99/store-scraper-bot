@@ -71,7 +71,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
         return;
       }
       V data = classV.getDeclaredConstructor().newInstance();
-      data.key(key);
+      data.setKey(key);
       save(key, data);
     } catch (Exception e) {
       log.error("Error while initializing data", e);

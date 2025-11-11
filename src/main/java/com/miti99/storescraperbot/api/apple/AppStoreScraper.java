@@ -1,15 +1,14 @@
 package com.miti99.storescraperbot.api.apple;
 
-import com.miti99.storescraperbot.api.apple.entity.AppleAppDetail;
-import com.miti99.storescraperbot.api.apple.request.ITunesLookupRequest;
-import com.miti99.storescraperbot.api.apple.response.ITunesLookupResponse;
+import com.miti99.storescraperbot.api.apple.request.AppleAppRequest;
+import com.miti99.storescraperbot.api.apple.response.AppleAppResponse;
 import com.miti99.storescraperbot.repository.AppleAppRepository;
 import com.miti99.storescraperbot.util.GsonUtil;
-import com.miti99.storescraperbot.util.RequestUtil;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -22,16 +21,16 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AppStoreScraper {
-  private static final String LOOKUP_URL = "https://itunes.apple.com/lookup?";
+  public static final String BASE_URL = "https://store-scraper.vercel.app/apple/";
 
   @SneakyThrows
-  public static String rawLookup(ITunesLookupRequest request) {
+  public static String rawApp(AppleAppRequest request) {
     var httpRequest =
         HttpRequest.newBuilder()
-            .uri(URI.create(LOOKUP_URL + RequestUtil.makeGetParams(request)))
+            .uri(URI.create(BASE_URL + "/app"))
             // .timeout(Duration.ofMillis(TIMEOUT))
             .header("Content-Type", "application/json")
-            .GET()
+            .POST(BodyPublishers.ofString(GsonUtil.toJson(request)))
             .build();
 
     try (var httpClient =
@@ -41,55 +40,64 @@ public class AppStoreScraper {
             .build()) {
       return httpClient.send(httpRequest, BodyHandlers.ofString()).body();
     } catch (Exception e) {
-      log.error("rawLookup error - request: '{}'", GsonUtil.toJson(request), e);
+      log.error("rawAppResponse error - request: '{}'", GsonUtil.toJson(request), e);
       return null;
     }
   }
 
   @SneakyThrows
-  public static AppleAppDetail app(ITunesLookupRequest request) {
-    return GsonUtil.fromJson(rawLookup(request), ITunesLookupResponse.class).getAppDetail();
+  public static AppleAppResponse app(AppleAppRequest request) {
+    return GsonUtil.fromJson(rawApp(request), AppleAppResponse.class);
   }
 
-  public static AppleAppDetail app(String appId) {
-    return app(new ITunesLookupRequest(appId));
-  }
-
-  public static AppleAppDetail app(long id) {
-    return app(new ITunesLookupRequest(id));
-  }
-
-  public static AppleAppDetail getAppResponse(String appId) {
+  public static AppleAppResponse getAppResponse(String appId, String country) {
     boolean isInCache = AppleAppRepository.INSTANCE.exist(appId);
     if (isInCache) {
       var app = AppleAppRepository.INSTANCE.load(appId);
-      return app.detail();
+      return app.getApp();
     } else {
-      var response = app(appId);
+      var response = app(new AppleAppRequest(appId, country));
       AppleAppRepository.INSTANCE.init(appId);
       var app = AppleAppRepository.INSTANCE.load(appId);
-      app.detail(response);
+      app.setApp(response);
       AppleAppRepository.INSTANCE.save(appId, app);
       return response;
     }
   }
 
-  public static LocalDate getAppUpdated(String appId) {
-    var detail = getAppResponse(appId);
-    if (detail == null) {
-      log.error("detail is null");
+  public static LocalDate getAppUpdated(String appId, String country) {
+    var response = getAppResponse(appId, country);
+    if (response == null) {
+      log.error("response is null");
       return LocalDate.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
     }
-    return LocalDate.ofInstant(
-        Instant.parse(detail.currentVersionReleaseDate()), ZoneId.systemDefault());
+    return LocalDate.ofInstant(Instant.parse(response.updated()), ZoneId.systemDefault());
   }
 
-  public static double getAppScore(String appId) {
-    var response = getAppResponse(appId);
+  public static double getAppScore(String appId, String country) {
+    var response = getAppResponse(appId, country);
     if (response == null) {
       log.error("response is null");
       return 0.0;
     }
-    return response.averageUserRating();
+    return response.score();
+  }
+
+  public static long getAppReviews(String appId, String country) {
+    var response = getAppResponse(appId, country);
+    if (response == null) {
+      log.error("response is null");
+      return 0L;
+    }
+    return response.reviews();
+  }
+
+  public static long getAppRatings(String appId, String country) {
+    var response = getAppResponse(appId, country);
+    if (response == null) {
+      log.error("response is null");
+      return 0L;
+    }
+    return response.ratings();
   }
 }

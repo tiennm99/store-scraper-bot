@@ -3,8 +3,8 @@ package com.miti99.storescraperbot.bot;
 import static com.miti99.storescraperbot.constant.Constant.VIETNAM_ZONE_ID;
 import static com.miti99.storescraperbot.constant.Constant.WEEKENDS;
 
-import com.miti99.storescraperbot.api.old.apple.AppStoreScraper;
-import com.miti99.storescraperbot.api.old.google.GooglePlayScraper;
+import com.miti99.storescraperbot.api.apple.AppStoreScraper;
+import com.miti99.storescraperbot.api.google.GooglePlayScraper;
 import com.miti99.storescraperbot.bot.command.AddAppleAppCommand;
 import com.miti99.storescraperbot.bot.command.AddGoogleAppCommand;
 import com.miti99.storescraperbot.bot.command.AddGroupCommand;
@@ -79,7 +79,7 @@ public class StoreScrapeBot extends CommandLongPollingTelegramBot {
 
   public void runCheckApp() {
     var admin = AdminRepository.INSTANCE.load();
-    for (var groupId : admin.groups()) {
+    for (var groupId : admin.getGroups()) {
       checkAppForGroup(groupId);
     }
   }
@@ -89,7 +89,7 @@ public class StoreScrapeBot extends CommandLongPollingTelegramBot {
     var now = LocalDate.now();
 
     var nonUpdatedAppleApps = new ArrayList<NonUpdatedApp>();
-    for (var app : group.appleApps()) {
+    for (var app : group.getAppleApps()) {
       var appId = app.appId();
       var updated = AppStoreScraper.getAppUpdated(appId, app.country());
       long days = ChronoUnit.DAYS.between(updated, now);
@@ -98,7 +98,7 @@ public class StoreScrapeBot extends CommandLongPollingTelegramBot {
       }
     }
     var nonUpdatedGoogleApps = new ArrayList<NonUpdatedApp>();
-    for (var app : group.googleApps()) {
+    for (var app : group.getGoogleApps()) {
       var appId = app.appId();
       var updated = GooglePlayScraper.getLastUpdateOfApp(appId, app.country());
       long days = ChronoUnit.DAYS.between(updated, now);

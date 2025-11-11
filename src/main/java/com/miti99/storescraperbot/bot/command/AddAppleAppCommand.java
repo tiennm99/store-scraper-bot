@@ -1,8 +1,8 @@
 package com.miti99.storescraperbot.bot.command;
 
-import com.miti99.storescraperbot.api.old.apple.AppStoreScraper;
-import com.miti99.storescraperbot.api.old.apple.request.AppleAppRequest;
-import com.miti99.storescraperbot.api.old.apple.response.AppleAppResponse;
+import com.miti99.storescraperbot.api.apple.AppStoreScraper;
+import com.miti99.storescraperbot.api.apple.request.AppleAppRequest;
+import com.miti99.storescraperbot.api.apple.response.AppleAppResponse;
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
 import com.miti99.storescraperbot.model.entity.AppleAppInfo;
 import com.miti99.storescraperbot.repository.AdminRepository;
@@ -26,7 +26,7 @@ public class AddAppleAppCommand extends BaseStoreScraperBotCommand {
   protected void executeCommand(
       TelegramClient telegramClient, User user, Chat chat, String[] arguments) {
     var admin = AdminRepository.INSTANCE.load();
-    if (!admin.groups().contains(chat.getId())) {
+    if (!admin.getGroups().contains(chat.getId())) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
           chat.getId(), "Group is not allowed to use bot");
       return;
@@ -64,13 +64,13 @@ public class AddAppleAppCommand extends BaseStoreScraperBotCommand {
     var group = GroupRepository.INSTANCE.load(groupId);
 
     var finalAppId = appId;
-    if (group.appleApps().stream().anyMatch(app -> finalAppId.equals(app.appId()))) {
+    if (group.getAppleApps().stream().anyMatch(app -> finalAppId.equals(app.appId()))) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
           chat.getId(), "Apple app <code>%s</code> is already added".formatted(appId));
       return;
     }
 
-    group.appleApps().add(new AppleAppInfo(appId, country));
+    group.getAppleApps().add(new AppleAppInfo(appId, country));
     GroupRepository.INSTANCE.save(groupId, group);
     StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
         chat.getId(),

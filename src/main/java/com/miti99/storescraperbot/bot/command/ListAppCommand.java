@@ -19,7 +19,7 @@ public class ListAppCommand extends BaseStoreScraperBotCommand {
   protected void executeCommand(
       TelegramClient telegramClient, User user, Chat chat, String[] arguments) {
     var admin = AdminRepository.INSTANCE.load();
-    if (!admin.groups().contains(chat.getId())) {
+    if (!admin.getGroups().contains(chat.getId())) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
           chat.getId(), "Group is not allowed to use bot");
       return;
@@ -38,7 +38,7 @@ public class ListAppCommand extends BaseStoreScraperBotCommand {
     sb.append("<code>\n");
     var appleTable = new Table("#", "AppId", "Country");
     int i = 0;
-    for (var app : group.appleApps()) {
+    for (var app : group.getAppleApps()) {
       i++;
       appleTable.addRow(i, app.appId(), app.country());
     }
@@ -49,7 +49,7 @@ public class ListAppCommand extends BaseStoreScraperBotCommand {
     sb.append("<code>\n");
     var googleTable = new Table("#", "AppId", "Country");
     i = 0;
-    for (var app : group.googleApps()) {
+    for (var app : group.getGoogleApps()) {
       i++;
       googleTable.addRow(i, app.appId(), app.country());
     }
