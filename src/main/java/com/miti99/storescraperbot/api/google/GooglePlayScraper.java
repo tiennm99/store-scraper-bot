@@ -21,7 +21,7 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class GooglePlayScraper {
-  public static final String BASE_URL = "https://miti-google-play-scraper.vercel.app/";
+  public static final String BASE_URL = "https://store-scraper.vercel.app/google/";
 
   @SneakyThrows
   public static String rawApp(GoogleAppRequest request) {

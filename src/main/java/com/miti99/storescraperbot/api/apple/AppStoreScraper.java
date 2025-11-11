@@ -21,7 +21,7 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AppStoreScraper {
-  public static final String BASE_URL = "https://miti-app-store-scraper.vercel.app/";
+  public static final String BASE_URL = "https://store-scraper.vercel.app/apple/";
 
   @SneakyThrows
   public static String rawApp(AppleAppRequest request) {
