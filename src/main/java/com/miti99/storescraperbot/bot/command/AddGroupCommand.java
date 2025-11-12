@@ -41,13 +41,13 @@ public class AddGroupCommand extends BaseStoreScraperBotCommand {
     }
 
     var admin = AdminRepository.INSTANCE.load();
-    if (admin.getGroups().contains(groupId)) {
+    if (admin.groups().contains(groupId)) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Group is already added");
       return;
     }
 
     GroupRepository.INSTANCE.init(groupId);
-    admin.getGroups().add(groupId);
+    admin.groups().add(groupId);
     AdminRepository.INSTANCE.save(admin);
     StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Group added successfully");
   }
