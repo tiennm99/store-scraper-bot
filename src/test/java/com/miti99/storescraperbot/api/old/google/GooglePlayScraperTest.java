@@ -1,6 +1,7 @@
-package com.miti99.storescraperbot.api.google;
+package com.miti99.storescraperbot.api.old.google;
 
-import com.miti99.storescraperbot.api.google.request.GoogleAppRequest;
+import com.miti99.storescraperbot.api.old.google.GooglePlayScraper;
+import com.miti99.storescraperbot.api.old.google.request.GoogleAppRequest;
 import com.miti99.storescraperbot.util.GsonUtil;
 import org.junit.jupiter.api.Test;
 

@@ -1,4 +1,4 @@
-package com.miti99.storescraperbot.api.google.response;
+package com.miti99.storescraperbot.api.old.google.response;
 
 import java.util.List;
 import java.util.Map;
