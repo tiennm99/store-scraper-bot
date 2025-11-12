@@ -40,12 +40,12 @@ public class DeleteGroupCommand extends BaseStoreScraperBotCommand {
     }
 
     var admin = AdminRepository.INSTANCE.load();
-    if (!admin.getGroups().contains(groupId)) {
+    if (!admin.groups().contains(groupId)) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Group is not added");
       return;
     }
 
-    admin.getGroups().remove(groupId);
+    admin.groups().remove(groupId);
     AdminRepository.INSTANCE.save(admin);
     StoreScrapeBotTelegramClient.INSTANCE.sendMessage(chat.getId(), "Group deleted successfully");
   }

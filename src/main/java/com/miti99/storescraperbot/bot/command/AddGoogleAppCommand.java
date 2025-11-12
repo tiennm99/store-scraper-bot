@@ -26,7 +26,7 @@ public class AddGoogleAppCommand extends BaseStoreScraperBotCommand {
   protected void executeCommand(
       TelegramClient telegramClient, User user, Chat chat, String[] arguments) {
     var admin = AdminRepository.INSTANCE.load();
-    if (!admin.getGroups().contains(chat.getId())) {
+    if (!admin.groups().contains(chat.getId())) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
           chat.getId(), "Group is not allowed to use bot");
       return;
@@ -52,13 +52,13 @@ public class AddGoogleAppCommand extends BaseStoreScraperBotCommand {
     long groupId = chat.getId();
     var group = GroupRepository.INSTANCE.load(groupId);
 
-    if (group.getGoogleApps().stream().anyMatch(app -> appId.equals(app.appId()))) {
+    if (group.googleApps().stream().anyMatch(app -> appId.equals(app.appId()))) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
           chat.getId(), "Google app <code>%s</code> is already added".formatted(appId));
       return;
     }
 
-    group.getGoogleApps().add(new GoogleAppInfo(appId, country));
+    group.googleApps().add(new GoogleAppInfo(appId, country));
     GroupRepository.INSTANCE.save(groupId, group);
     StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
         chat.getId(),

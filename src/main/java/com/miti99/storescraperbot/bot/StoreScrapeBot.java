@@ -79,7 +79,7 @@ public class StoreScrapeBot extends CommandLongPollingTelegramBot {
 
   public void runCheckApp() {
     var admin = AdminRepository.INSTANCE.load();
-    for (var groupId : admin.getGroups()) {
+    for (var groupId : admin.groups()) {
       checkAppForGroup(groupId);
     }
   }
@@ -89,7 +89,7 @@ public class StoreScrapeBot extends CommandLongPollingTelegramBot {
     var now = LocalDate.now();
 
     var nonUpdatedAppleApps = new ArrayList<NonUpdatedApp>();
-    for (var app : group.getAppleApps()) {
+    for (var app : group.appleApps()) {
       var appId = app.appId();
       var updated = AppStoreScraper.getAppUpdated(appId, app.country());
       long days = ChronoUnit.DAYS.between(updated, now);
@@ -98,7 +98,7 @@ public class StoreScrapeBot extends CommandLongPollingTelegramBot {
       }
     }
     var nonUpdatedGoogleApps = new ArrayList<NonUpdatedApp>();
-    for (var app : group.getGoogleApps()) {
+    for (var app : group.googleApps()) {
       var appId = app.appId();
       var updated = GooglePlayScraper.getLastUpdateOfApp(appId, app.country());
       long days = ChronoUnit.DAYS.between(updated, now);

@@ -24,7 +24,7 @@ public class CheckAppCommand extends BaseStoreScraperBotCommand {
   protected void executeCommand(
       TelegramClient telegramClient, User user, Chat chat, String[] arguments) {
     var admin = AdminRepository.INSTANCE.load();
-    if (!admin.getGroups().contains(chat.getId())) {
+    if (!admin.groups().contains(chat.getId())) {
       StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
           chat.getId(), "Group is not allowed to use bot");
       return;
@@ -43,7 +43,7 @@ public class CheckAppCommand extends BaseStoreScraperBotCommand {
     sb.append("<b>Apple Apps:</b>\n");
     sb.append("<code>\n");
     var appleTable = new Table("AppId", "Updated", "Days", "OK");
-    for (var app : group.getAppleApps()) {
+    for (var app : group.appleApps()) {
       var appId = app.appId();
       var updated = AppStoreScraper.getAppUpdated(appId, app.country());
       long days = ChronoUnit.DAYS.between(updated, now);
@@ -57,7 +57,7 @@ public class CheckAppCommand extends BaseStoreScraperBotCommand {
     sb.append("<b>Google Apps:</b>\n");
     sb.append("<code>\n");
     var googleTable = new Table("AppId", "Updated", "Days", "OK");
-    for (var app : group.getGoogleApps()) {
+    for (var app : group.googleApps()) {
       var appId = app.appId();
       var updated = GooglePlayScraper.getLastUpdateOfApp(appId, app.country());
       long days = ChronoUnit.DAYS.between(updated, now);

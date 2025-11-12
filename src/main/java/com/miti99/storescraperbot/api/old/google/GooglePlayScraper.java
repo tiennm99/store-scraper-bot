@@ -53,12 +53,12 @@ public class GooglePlayScraper {
     boolean isInCache = GoogleAppRepository.INSTANCE.exist(appId);
     if (isInCache) {
       var app = GoogleAppRepository.INSTANCE.load(appId);
-      return app.getApp();
+      return app.app();
     } else {
       var response = app(new GoogleAppRequest(appId, country));
       GoogleAppRepository.INSTANCE.init(appId);
       var app = GoogleAppRepository.INSTANCE.load(appId);
-      app.setApp(response);
+      app.app(response);
       GoogleAppRepository.INSTANCE.save(appId, app);
       return response;
     }

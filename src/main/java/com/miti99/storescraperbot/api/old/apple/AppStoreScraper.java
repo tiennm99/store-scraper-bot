@@ -54,12 +54,12 @@ public class AppStoreScraper {
     boolean isInCache = AppleAppRepository.INSTANCE.exist(appId);
     if (isInCache) {
       var app = AppleAppRepository.INSTANCE.load(appId);
-      return app.getApp();
+      return app.app();
     } else {
       var response = app(new AppleAppRequest(appId, country));
       AppleAppRepository.INSTANCE.init(appId);
       var app = AppleAppRepository.INSTANCE.load(appId);
-      app.setApp(response);
+      app.app(response);
       AppleAppRepository.INSTANCE.save(appId, app);
       return response;
     }
