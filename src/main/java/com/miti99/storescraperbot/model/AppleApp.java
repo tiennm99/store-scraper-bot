@@ -1,6 +1,6 @@
 package com.miti99.storescraperbot.model;
 
-import com.miti99.storescraperbot.api.apple.response.AppleAppResponse;
+import com.miti99.storescraperbot.api.old.apple.response.AppleAppResponse;
 import lombok.Getter;
 import lombok.Setter;
 

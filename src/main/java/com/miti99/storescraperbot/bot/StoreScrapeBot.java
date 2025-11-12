@@ -3,8 +3,8 @@ package com.miti99.storescraperbot.bot;
 import static com.miti99.storescraperbot.constant.Constant.VIETNAM_ZONE_ID;
 import static com.miti99.storescraperbot.constant.Constant.WEEKENDS;
 
-import com.miti99.storescraperbot.api.apple.AppStoreScraper;
-import com.miti99.storescraperbot.api.google.GooglePlayScraper;
+import com.miti99.storescraperbot.api.old.apple.AppStoreScraper;
+import com.miti99.storescraperbot.api.old.google.GooglePlayScraper;
 import com.miti99.storescraperbot.bot.command.AddAppleAppCommand;
 import com.miti99.storescraperbot.bot.command.AddGoogleAppCommand;
 import com.miti99.storescraperbot.bot.command.AddGroupCommand;

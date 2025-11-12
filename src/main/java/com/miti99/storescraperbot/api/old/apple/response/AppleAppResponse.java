@@ -1,4 +1,4 @@
-package com.miti99.storescraperbot.api.apple.response;
+package com.miti99.storescraperbot.api.old.apple.response;
 
 import java.util.List;
 import java.util.Map;

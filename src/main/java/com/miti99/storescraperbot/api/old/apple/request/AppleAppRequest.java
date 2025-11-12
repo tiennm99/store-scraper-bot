@@ -1,4 +1,4 @@
-package com.miti99.storescraperbot.api.apple.request;
+package com.miti99.storescraperbot.api.old.apple.request;
 
 public record AppleAppRequest(Long id, String appId, String country, Boolean ratings) {
 

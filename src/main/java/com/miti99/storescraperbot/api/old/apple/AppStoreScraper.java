@@ -1,8 +1,8 @@
-package com.miti99.storescraperbot.api.google;
+package com.miti99.storescraperbot.api.old.apple;
 
-import com.miti99.storescraperbot.api.google.request.GoogleAppRequest;
-import com.miti99.storescraperbot.api.google.response.GoogleAppResponse;
-import com.miti99.storescraperbot.repository.GoogleAppRepository;
+import com.miti99.storescraperbot.api.old.apple.request.AppleAppRequest;
+import com.miti99.storescraperbot.api.old.apple.response.AppleAppResponse;
+import com.miti99.storescraperbot.repository.AppleAppRepository;
 import com.miti99.storescraperbot.util.GsonUtil;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -20,11 +20,11 @@ import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class GooglePlayScraper {
-  public static final String BASE_URL = "https://miti-google-play-scraper.vercel.app/";
+public class AppStoreScraper {
+  public static final String BASE_URL = "https://miti-app-store-scraper.vercel.app/";
 
   @SneakyThrows
-  public static String rawApp(GoogleAppRequest request) {
+  public static String rawApp(AppleAppRequest request) {
     var httpRequest =
         HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL + "/app"))
@@ -35,8 +35,8 @@ public class GooglePlayScraper {
 
     try (var httpClient =
         HttpClient.newBuilder()
-            // .connectTimeout(Duration.ofMillis(TIMEOUT))
             .followRedirects(Redirect.NORMAL)
+            // .connectTimeout(Duration.ofMillis(TIMEOUT))
             .build()) {
       return httpClient.send(httpRequest, BodyHandlers.ofString()).body();
     } catch (Exception e) {
@@ -45,34 +45,33 @@ public class GooglePlayScraper {
     }
   }
 
-  public static GoogleAppResponse app(GoogleAppRequest request) {
-    return GsonUtil.fromJson(rawApp(request), GoogleAppResponse.class);
+  @SneakyThrows
+  public static AppleAppResponse app(AppleAppRequest request) {
+    return GsonUtil.fromJson(rawApp(request), AppleAppResponse.class);
   }
 
-  private static GoogleAppResponse getAppResponse(String appId, String country) {
-    boolean isInCache = GoogleAppRepository.INSTANCE.exist(appId);
+  public static AppleAppResponse getAppResponse(String appId, String country) {
+    boolean isInCache = AppleAppRepository.INSTANCE.exist(appId);
     if (isInCache) {
-      var app = GoogleAppRepository.INSTANCE.load(appId);
+      var app = AppleAppRepository.INSTANCE.load(appId);
       return app.getApp();
     } else {
-      var response = app(new GoogleAppRequest(appId, country));
-      GoogleAppRepository.INSTANCE.init(appId);
-      var app = GoogleAppRepository.INSTANCE.load(appId);
+      var response = app(new AppleAppRequest(appId, country));
+      AppleAppRepository.INSTANCE.init(appId);
+      var app = AppleAppRepository.INSTANCE.load(appId);
       app.setApp(response);
-      GoogleAppRepository.INSTANCE.save(appId, app);
+      AppleAppRepository.INSTANCE.save(appId, app);
       return response;
     }
   }
 
-  public static LocalDate getLastUpdateOfApp(String appId, String country) {
+  public static LocalDate getAppUpdated(String appId, String country) {
     var response = getAppResponse(appId, country);
-    long lastUpdateMillis = 0;
-    if (response != null) {
-      lastUpdateMillis = response.updated();
-    } else {
+    if (response == null) {
       log.error("response is null");
+      return LocalDate.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
     }
-    return LocalDate.ofInstant(Instant.ofEpochMilli(lastUpdateMillis), ZoneId.systemDefault());
+    return LocalDate.ofInstant(Instant.parse(response.updated()), ZoneId.systemDefault());
   }
 
   public static double getAppScore(String appId, String country) {
@@ -84,13 +83,13 @@ public class GooglePlayScraper {
     return response.score();
   }
 
-  public static String getAppScoreText(String appId, String country) {
+  public static long getAppReviews(String appId, String country) {
     var response = getAppResponse(appId, country);
     if (response == null) {
       log.error("response is null");
-      return "";
+      return 0L;
     }
-    return response.scoreText();
+    return response.reviews();
   }
 
   public static long getAppRatings(String appId, String country) {

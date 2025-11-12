@@ -1,7 +1,7 @@
 package com.miti99.storescraperbot.bot.command;
 
-import com.miti99.storescraperbot.api.apple.AppStoreScraper;
-import com.miti99.storescraperbot.api.google.GooglePlayScraper;
+import com.miti99.storescraperbot.api.old.apple.AppStoreScraper;
+import com.miti99.storescraperbot.api.old.google.GooglePlayScraper;
 import com.miti99.storescraperbot.bot.StoreScrapeBotTelegramClient;
 import com.miti99.storescraperbot.bot.table.Table;
 import com.miti99.storescraperbot.repository.AdminRepository;
