@@ -59,7 +59,15 @@ repositories {
 }
 
 tasks.shadowJar {
+    mergeServiceFiles()
     transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer::class.java)
+
+    isReproducibleFileOrder = true
+    isPreserveFileTimestamps = false
+
+    exclude("META-INF/*.SF")
+    exclude("META-INF/*.DSA")
+    exclude("META-INF/*.RSA")
 }
 
 tasks.test {
