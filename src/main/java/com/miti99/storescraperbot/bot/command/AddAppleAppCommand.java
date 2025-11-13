@@ -19,7 +19,7 @@ public class AddAppleAppCommand extends BaseStoreScraperBotCommand {
   AddAppleAppCommand() {
     super(
         "addapple",
-        "<id/appId> [country]. Thêm Apple app vào danh sách theo dõi của nhóm. id: <i>iTunes 'trackId'</i>, appId: <i>iTunes 'bundleId'</i>. Một số app cần country để hoạt động đúng, country mặc định là 'vn'");
+        "<id/bundleId> [country]. Thêm Apple app vào danh sách theo dõi của nhóm. Một số app cần country để hoạt động đúng, country mặc định là 'vn'");
   }
 
   @Override
