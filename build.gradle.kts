@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
+
 plugins {
     application
     idea
@@ -33,7 +35,7 @@ dependencies {
     implementation("org.telegram:telegrambots-client:8.0.0")
     implementation("org.telegram:telegrambots-extensions:8.0.0")
     implementation("org.telegram:telegrambots-longpolling:8.0.0")
-    // implementation("pl.tkowalcz.tjahzi:log4j2-appender:0.9.32")
+    implementation("pl.tkowalcz.tjahzi:log4j2-appender:0.9.32")
 
     testAnnotationProcessor("org.projectlombok:lombok:1.18.36")
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
@@ -56,6 +58,10 @@ java {
 
 repositories {
     mavenCentral()
+}
+
+tasks.shadowJar {
+    transform(Log4j2PluginsCacheFileTransformer())
 }
 
 tasks.test {
