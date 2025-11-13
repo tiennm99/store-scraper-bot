@@ -24,8 +24,6 @@ import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 public class Main {
 
   public static void main(String[] args) {
-    System.setProperty("log4j2.plugin.scan", "true");
-
     AdminRepository.INSTANCE.init();
 
     try (var botsApplication = new TelegramBotsLongPollingApplication()) {
