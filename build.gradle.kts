@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
-
 plugins {
     application
     idea
@@ -61,7 +59,7 @@ repositories {
 }
 
 tasks.shadowJar {
-    transform(Log4j2PluginsCacheFileTransformer())
+    transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer::class.java)
 }
 
 tasks.test {
