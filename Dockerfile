@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21.0.9.10-alpine AS deps
+FROM eclipse-temurin:21.0.9_10-alpine AS deps
 WORKDIR /build
 COPY --chmod=0755 gradlew gradlew
 COPY gradle/ gradle/
@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew build -x check -x test --no-daemon --parallel --build-cache && \
     mv build/libs/*-all.jar app.jar
 
-FROM eclipse-temurin:21.0.9.10-jre-alpine AS final
+FROM eclipse-temurin:21.0.9_10-jre-alpine AS final
 ARG UID=10001
 RUN adduser \
     --disabled-password \
