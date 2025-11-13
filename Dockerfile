@@ -1,11 +1,9 @@
-FROM eclipse-temurin:21-jdk-jammy AS deps
+FROM gradle:8-jdk21-alpine AS deps
 WORKDIR /build
-COPY --chmod=0755 gradlew gradlew
-COPY gradle/ gradle/
 RUN --mount=type=bind,source=build.gradle.kts,target=build.gradle.kts \
     --mount=type=bind,source=settings.gradle.kts,target=settings.gradle.kts \
     --mount=type=cache,target=/root/.gradle \
-    ./gradlew dependencies -x check -x test --no-daemon --parallel --build-cache
+    gradle dependencies -x check -x test --no-daemon --parallel --build-cache
 
 FROM deps as package
 WORKDIR /build
@@ -13,9 +11,7 @@ COPY ./src src/
 RUN --mount=type=bind,source=build.gradle.kts,target=build.gradle.kts \
     --mount=type=bind,source=settings.gradle.kts,target=settings.gradle.kts \
     --mount=type=cache,target=/root/.gradle \
-    ./gradlew build -x check -x test --no-daemon --parallel --build-cache && \
-    mv build/libs/*-all.jar build/libs/app.jar || \
-    mv build/libs/*.jar build/libs/app.jar
+    gradle build -x check -x test --no-daemon --parallel --build-cache
 
 FROM eclipse-temurin:21-jre-jammy AS final
 ARG UID=10001
@@ -29,5 +25,5 @@ RUN adduser \
     appuser
 USER appuser
 WORKDIR /app
-COPY --from=package /build/build/libs/app.jar app.jar
+COPY --from=package /build/build/libs/*-all.jar app.jar
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
