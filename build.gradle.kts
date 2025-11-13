@@ -61,7 +61,6 @@ repositories {
 }
 
 tasks.shadowJar {
-    mergeServiceFiles()
     transform(Log4j2PluginsCacheFileTransformer())
 }
 
