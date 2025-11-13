@@ -12,7 +12,7 @@ RUN --mount=type=cache,target=/root/.gradle \
     gradle build -x check -x test --no-daemon --parallel --build-cache && \
     mv build/libs/*-all.jar app.jar
 
-FROM eclipse-temurin:21-jre-jammy AS final
+FROM eclipse-temurin:21-jre-alpine AS final
 ARG UID=10001
 RUN adduser \
     --disabled-password \
