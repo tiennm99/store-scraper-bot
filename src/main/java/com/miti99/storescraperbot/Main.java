@@ -28,7 +28,7 @@ public class Main {
 
     try (var botsApplication = new TelegramBotsLongPollingApplication()) {
       botsApplication.registerBot(Environment.TELEGRAM_BOT_TOKEN, StoreScrapeBot.INSTANCE);
-      log.info("StoreScrapeBot successfully started!");
+      log.info("Bot started! Version {}", SOURCE_COMMIT);
       if (Environment.ENV == Env.PRODUCTION) {
         StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
             CREATOR_ID, "Bot started! Version <code>%s</code>".formatted(SOURCE_COMMIT));
