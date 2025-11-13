@@ -66,8 +66,7 @@ public class CouchbaseUtil {
           scopeSpec.collections().stream().anyMatch(c -> c.name().equals(collectionName));
 
       if (!collectionExists) {
-        var spec = CollectionSpec.create(collectionName, scopeName);
-        collectionManager.createCollection(spec);
+        collectionManager.createCollection(scopeName, collectionName);
         log.info("Collection created: {} in {}", collectionName, scopeName);
       } else {
         log.info("Collection existed: {} in {}", collectionName, scopeName);
