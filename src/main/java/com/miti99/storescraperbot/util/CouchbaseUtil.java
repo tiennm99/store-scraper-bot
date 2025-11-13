@@ -8,7 +8,6 @@ import static com.miti99.storescraperbot.env.Environment.COUCHBASE_USERNAME;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.ClusterOptions;
-import com.couchbase.client.java.manager.collection.CollectionSpec;
 import java.time.Duration;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
