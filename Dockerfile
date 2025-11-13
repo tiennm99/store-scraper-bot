@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21.0.9_10-alpine AS deps
+FROM eclipse-temurin:21.0.9_10-jdk-alpine AS deps
 WORKDIR /build
 COPY --chmod=0755 gradlew gradlew
 COPY gradle/ gradle/
