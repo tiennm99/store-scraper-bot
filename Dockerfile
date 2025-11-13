@@ -4,12 +4,13 @@ COPY build.gradle.kts settings.gradle.kts ./
 RUN --mount=type=cache,target=/root/.gradle \
     gradle dependencies -x check -x test --no-daemon --parallel --build-cache
 
-FROM deps as package
+FROM deps AS package
 WORKDIR /build
 COPY ./src src/
 RUN --mount=type=cache,target=/root/.gradle \
     --mount=type=cache,target=/build/build \
-    gradle build -x check -x test --no-daemon --parallel --build-cache
+    gradle build -x check -x test --no-daemon --parallel --build-cache && \
+    mv build/libs/*-all.jar build/app.jar
 
 FROM eclipse-temurin:21-jre-jammy AS final
 ARG UID=10001
@@ -23,5 +24,5 @@ RUN adduser \
     appuser
 USER appuser
 WORKDIR /app
-COPY --from=package /build/build/libs/*-all.jar app.jar
+COPY --from=package /build/build/app.jar app.jar
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
