@@ -1,4 +1,4 @@
-FROM amazoncorretto:21.0.5-alpine AS deps
+FROM eclipse-temurin:21-jdk-jammy AS deps
 WORKDIR /build
 COPY --chmod=0755 gradlew gradlew
 COPY gradle/ gradle/
@@ -17,7 +17,7 @@ RUN --mount=type=bind,source=build.gradle.kts,target=build.gradle.kts \
     mv build/libs/*-all.jar build/libs/app.jar || \
     mv build/libs/*.jar build/libs/app.jar
 
-FROM amazoncorretto:21.0.5-alpine AS final
+FROM eclipse-temurin:21-jre-jammy AS final
 ARG UID=10001
 RUN adduser \
     --disabled-password \
