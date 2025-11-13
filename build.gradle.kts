@@ -33,7 +33,7 @@ dependencies {
     implementation("org.telegram:telegrambots-client:8.0.0")
     implementation("org.telegram:telegrambots-extensions:8.0.0")
     implementation("org.telegram:telegrambots-longpolling:8.0.0")
-    implementation("pl.tkowalcz.tjahzi:log4j2-appender-nodep:0.9.32")
+    // implementation("pl.tkowalcz.tjahzi:log4j2-appender-nodep:0.9.32")
 
     testAnnotationProcessor("org.projectlombok:lombok:1.18.36")
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
@@ -58,9 +58,9 @@ repositories {
     mavenCentral()
 }
 
-tasks.shadowJar {
-    transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer())
-}
+// tasks.shadowJar {
+//     transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer())
+// }
 
 tasks.test {
     useJUnitPlatform()
