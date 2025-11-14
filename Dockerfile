@@ -12,7 +12,7 @@ COPY ./src src/
 RUN --mount=type=cache,target=/root/.gradle \
     --mount=type=cache,target=/build/build \
     ./gradlew distTar -x check -x test --no-daemon --parallel --build-cache && \
-    cp build/distributions/*.tar app.tar
+    mv build/distributions/*.tar app.tar
 
 FROM eclipse-temurin:21.0.9_10-jre-alpine AS final
 ARG UID=10001
