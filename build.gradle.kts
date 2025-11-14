@@ -2,7 +2,6 @@ plugins {
     application
     idea
     java
-    id("com.gradleup.shadow") version "8.3.5"
 }
 
 group = "com.miti99"
@@ -57,10 +56,6 @@ java {
 repositories {
     mavenCentral()
 }
-
-// tasks.shadowJar {
-//     transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer())
-// }
 
 tasks.test {
     useJUnitPlatform()

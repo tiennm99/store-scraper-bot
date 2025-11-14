@@ -11,8 +11,7 @@ WORKDIR /build
 COPY ./src src/
 RUN --mount=type=cache,target=/root/.gradle \
     --mount=type=cache,target=/build/build \
-    ./gradlew build -x check -x test --no-daemon --parallel --build-cache && \
-    mv build/libs/*-all.jar app.jar
+    ./gradlew distTar -x check -x test --no-daemon --parallel --build-cache
 
 FROM eclipse-temurin:21.0.9_10-jre-alpine AS final
 ARG UID=10001
@@ -26,5 +25,6 @@ RUN adduser \
     appuser
 USER appuser
 WORKDIR /app
-COPY --from=package /build/app.jar app.jar
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+COPY --from=package /build/build/distributions/*.tar.gz app.tar.gz
+RUN tar -xzf app.tar.gz --strip-components=1 && rm app.tar.gz
+ENTRYPOINT ["sh", "-c", "bin/com.miti99.storescraperbot"]
