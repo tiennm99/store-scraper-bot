@@ -10,7 +10,6 @@ FROM deps AS package
 WORKDIR /build
 COPY ./src src/
 RUN --mount=type=cache,target=/root/.gradle \
-    --mount=type=cache,target=/build/build \
     ./gradlew distTar -x check -x test --no-daemon --parallel --build-cache && \
     mv build/distributions/*.tar app.tar
 
