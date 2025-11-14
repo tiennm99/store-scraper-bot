@@ -12,7 +12,7 @@ COPY ./src src/
 RUN --mount=type=cache,target=/root/.gradle \
     --mount=type=cache,target=/build/build \
     ./gradlew distTar -x check -x test --no-daemon --parallel --build-cache && \
-    cp build/distributions/*.tar app.tar
+    cp build/distributions/*.tar.gz app.tar.gz
 
 FROM eclipse-temurin:21.0.9_10-jre-alpine AS final
 ARG UID=10001
@@ -26,6 +26,6 @@ RUN adduser \
     appuser
 USER appuser
 WORKDIR /app
-COPY --from=package /build/dist.tar dist.tar
-RUN tar -xzf app.tar --strip-components=1 && rm app.tar
+COPY --from=package /build/app.tar.gz app.tar.gz
+RUN tar -xzf app.tar.gz --strip-components=1 && rm app.tar.gz
 ENTRYPOINT ["sh", "-c", "cd /app && ./bin/store-scraper-bot"]
