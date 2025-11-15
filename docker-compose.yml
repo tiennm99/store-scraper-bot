@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: store-scraper-bot-go
+    restart: unless-stopped
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}
+      - MONGO_URI=mongodb://mongodb:27017
+      - MONGO_DATABASE=store_scraper_bot
+      - ENV=${ENV:-PRODUCTION}
+      - ADMIN_IDS=${ADMIN_IDS}
+      - SOURCE_COMMIT=${SOURCE_COMMIT:-unknown}
+    depends_on:
+      - mongodb
+    networks:
+      - bot-network
+
+  mongodb:
+    image: mongo:7.0
+    container_name: store-scraper-mongodb
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=store_scraper_bot
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - bot-network
+    ports:
+      - "27017:27017"
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:

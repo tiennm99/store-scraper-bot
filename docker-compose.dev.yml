@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: store-scraper-bot-go-dev
+    restart: unless-stopped
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}
+      - MONGO_URI=mongodb://mongodb:27017
+      - MONGO_DATABASE=store_scraper_bot_dev
+      - ENV=DEVELOPMENT
+      - ADMIN_IDS=${ADMIN_IDS}
+      - SOURCE_COMMIT=${SOURCE_COMMIT:-dev}
+    depends_on:
+      - mongodb
+    networks:
+      - bot-network
+    volumes:
+      - .:/app
+
+  mongodb:
+    image: mongo:7.0
+    container_name: store-scraper-mongodb-dev
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=store_scraper_bot_dev
+    volumes:
+      - mongodb_data_dev:/data/db
+    networks:
+      - bot-network
+    ports:
+      - "27017:27017"
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express-dev
+    restart: unless-stopped
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://mongodb:27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin
+    depends_on:
+      - mongodb
+    networks:
+      - bot-network
+    ports:
+      - "8081:8081"
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  mongodb_data_dev:
