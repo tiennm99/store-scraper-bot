@@ -21,6 +21,7 @@ import com.miti99.storescraperbot.bot.command.RawGoogleAppCommand;
 import com.miti99.storescraperbot.bot.entity.NonUpdatedApp;
 import com.miti99.storescraperbot.bot.table.Table;
 import com.miti99.storescraperbot.constant.Constant;
+import com.miti99.storescraperbot.env.Environment;
 import com.miti99.storescraperbot.repository.AdminRepository;
 import com.miti99.storescraperbot.repository.GroupRepository;
 import java.time.LocalDate;
@@ -80,9 +81,21 @@ public class StoreScrapeBot extends CommandLongPollingTelegramBot {
   }
 
   public void runCheckApp() {
-    var admin = AdminRepository.INSTANCE.load();
-    for (var groupId : admin.getGroups()) {
-      checkAppForGroup(groupId);
+    try {
+      var admin = AdminRepository.INSTANCE.load();
+      for (var groupId : admin.getGroups()) {
+        try {
+          checkAppForGroup(groupId);
+        } catch (Exception e) {
+          log.error("runCheckApp error - groupId: {}", groupId, e);
+          StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
+              Environment.CREATOR_ID, "runCheckApp error - groupId: %d".formatted(groupId));
+        }
+      }
+    } catch (Exception e) {
+      log.error("runCheckApp error", e);
+      StoreScrapeBotTelegramClient.INSTANCE.sendMessage(
+          Environment.CREATOR_ID, "runCheckApp error");
     }
   }
 
