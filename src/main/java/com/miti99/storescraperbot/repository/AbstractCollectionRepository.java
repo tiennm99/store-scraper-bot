@@ -4,7 +4,7 @@ import com.miti99.storescraperbot.model.AbstractModel;
 import lombok.extern.log4j.Log4j2;
 
 /**
- * Các repository tương ứng với 1 Couchbase collection, public các method protected ở class
+ * Các repository tương ứng với 1 MongoDB collection, public các method protected ở class
  * AbstractRepository để các nơi khác gọi
  */
 @Log4j2

@@ -22,7 +22,7 @@ configurations {
 
 dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.36")
-    implementation("com.couchbase.client:java-client:3.7.6")
+    implementation("org.mongodb:mongodb-driver-sync:5.2.1")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("com.google.guava:guava:33.4.0-jre")
