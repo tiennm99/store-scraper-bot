@@ -2,14 +2,15 @@ package com.miti99.storescraperbot.repository;
 
 import static com.miti99.storescraperbot.repository.AbstractSingletonRepository.COMMON_COLLECTION_NAME;
 
-import com.couchbase.client.java.Collection;
-import com.couchbase.client.java.kv.UpsertOptions;
 import com.google.common.base.CaseFormat;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.ReplaceOptions;
 import com.miti99.storescraperbot.env.Environment;
 import com.miti99.storescraperbot.model.AbstractModel;
-import com.miti99.storescraperbot.util.CouchbaseUtil;
+import com.miti99.storescraperbot.util.MongoDBUtil;
 import java.lang.reflect.ParameterizedType;
-import java.time.Duration;
 import lombok.extern.log4j.Log4j2;
 
 /**
@@ -21,12 +22,11 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   protected static final String SEPARATOR = "_";
   // protected final Class<K> classK = getKeyClass();
   protected final Class<V> classV = getDataClass();
-  protected final String scopeName = Environment.ENV.name().toLowerCase();
   protected final String collectionName;
 
   protected AbstractRepository(String collectionName) {
     this.collectionName = collectionName;
-    CouchbaseUtil.createCollection(scopeName, collectionName);
+    MongoDBUtil.createCollectionIfNotExists(collectionName);
   }
 
   protected AbstractRepository() {
@@ -35,7 +35,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
       throw new RuntimeException(
           "Collection named '%s' is reserved".formatted(COMMON_COLLECTION_NAME));
     }
-    CouchbaseUtil.createCollection(scopeName, collectionName);
+    MongoDBUtil.createCollectionIfNotExists(collectionName);
   }
 
   // protected Class<K> getKeyClass() {
@@ -54,8 +54,8 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
         ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[1];
   }
 
-  protected Collection collection() {
-    return CouchbaseUtil.BUCKET.scope(scopeName).collection(collectionName);
+  protected MongoCollection<V> collection() {
+    return MongoDBUtil.DATABASE.getCollection(collectionName, classV);
   }
 
   /**
@@ -85,13 +85,12 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   protected void save(K key, V data) {
     var databaseKey = getDatabaseKey(key);
     try {
-      if (getExpireSeconds() == 0) {
-        collection().upsert(databaseKey, data);
-      } else {
-        var upsertOptions =
-            UpsertOptions.upsertOptions().expiry(Duration.ofSeconds(getExpireSeconds()));
-        collection().upsert(databaseKey, data, upsertOptions);
+      var replaceOptions = new ReplaceOptions();
+      if (getExpireSeconds() > 0) {
+        // MongoDB TTL indexes need to be created at the collection level
+        // For now, we'll just save without TTL and handle TTL through indexes
       }
+      collection().replaceOne(Filters.eq("_id", databaseKey), data, replaceOptions);
     } catch (Exception e) {
       log.error("save error - key {}, databaseKey {}", key, databaseKey, e);
     }
@@ -100,7 +99,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   protected boolean exist(K key) {
     var databaseKey = getDatabaseKey(key);
     try {
-      return collection().exists(databaseKey).exists();
+      return collection().countDocuments(Filters.eq("_id", databaseKey)) > 0;
     } catch (Exception e) {
       log.error("exist error - key {}, databaseKey {}", key, databaseKey, e);
       return false;
@@ -110,11 +109,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   protected V load(K key) {
     var databaseKey = getDatabaseKey(key);
     try {
-      var getResult = collection().get(databaseKey);
-      if (getResult == null) {
-        return null;
-      }
-      return getResult.contentAs(classV);
+      return collection().find(Filters.eq("_id", databaseKey)).first();
     } catch (Exception e) {
       log.error("load error - key {}, databaseKey {}", key, databaseKey, e);
       return null;
@@ -124,7 +119,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   protected void delete(K key) {
     var databaseKey = getDatabaseKey(key);
     try {
-      collection().remove(databaseKey);
+      collection().deleteOne(Filters.eq("_id", databaseKey));
     } catch (Exception e) {
       log.error("delete error", e);
     }
