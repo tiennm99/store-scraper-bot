@@ -9,11 +9,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Environment {
-  public static final String MONGODB_CONNECTION_STRING =
-      System.getenv("MONGODB_CONNECTION_STRING");
-  public static final String MONGODB_USERNAME = System.getenv("MONGODB_USERNAME");
-  public static final String MONGODB_PASSWORD = System.getenv("MONGODB_PASSWORD");
-  public static final String MONGODB_DATABASE_NAME = System.getenv("MONGODB_DATABASE_NAME");
+  public static final String MONGODB_CONNECTION_STRING = System.getenv("MONGODB_CONNECTION_STRING");
 
   public static final String TELEGRAM_BOT_TOKEN = System.getenv("TELEGRAM_BOT_TOKEN");
   public static final String TELEGRAM_BOT_USERNAME = System.getenv("TELEGRAM_BOT_USERNAME");

@@ -1,19 +1,20 @@
 package com.miti99.storescraperbot.util;
 
-import static com.miti99.storescraperbot.env.Environment.MONGODB_DATABASE_NAME;
 import static com.miti99.storescraperbot.env.Environment.MONGODB_CONNECTION_STRING;
-import static com.miti99.storescraperbot.env.Environment.MONGODB_USERNAME;
-import static com.miti99.storescraperbot.env.Environment.MONGODB_PASSWORD;
 
+import com.miti99.storescraperbot.constant.Constant;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoException;
+import com.mongodb.ServerApi;
+import com.mongodb.ServerApiVersion;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Indexes;
-import com.mongodb.client.model.CreateIndexOptions;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.bson.Document;
 
 @Log4j2
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -22,26 +23,31 @@ public class MongoDBUtil {
   public static final MongoDatabase DATABASE;
 
   static {
-    String connectionString = MONGODB_CONNECTION_STRING;
-    String username = MONGODB_USERNAME;
-    String password = MONGODB_PASSWORD;
-
-    String mongoUri;
-    if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
-      mongoUri = String.format("mongodb://%s:%s@%s", username, password, connectionString);
-    } else {
-      mongoUri = connectionString;
+    var serverApi = ServerApi.builder().version(ServerApiVersion.V1).build();
+    var connectionString = new ConnectionString(MONGODB_CONNECTION_STRING);
+    var settings =
+        MongoClientSettings.builder()
+            .applyConnectionString(connectionString)
+            .serverApi(serverApi)
+            .build();
+    MONGO_CLIENT = MongoClients.create(settings);
+    var databaseName =
+        connectionString.getDatabase() != null
+            ? connectionString.getDatabase()
+            : Constant.DEFAULT_DATABASE_NAME;
+    DATABASE = MONGO_CLIENT.getDatabase(databaseName);
+    try {
+      DATABASE.runCommand(new Document("ping", 1));
+      log.info("Pinged your deployment. You successfully connected to MongoDB!");
+    } catch (MongoException e) {
+      log.error(e);
     }
-
-    MONGO_CLIENT = MongoClients.create(mongoUri);
-    DATABASE = MONGO_CLIENT.getDatabase(MONGODB_DATABASE_NAME);
-    log.info("MongoDB connection established to database: {}", MONGODB_DATABASE_NAME);
   }
 
   public static void createCollectionIfNotExists(String collectionName) {
     try {
       boolean collectionExists = false;
-      for (String name : DATABASE.listCollectionNames()) {
+      for (var name : DATABASE.listCollectionNames()) {
         if (name.equals(collectionName)) {
           collectionExists = true;
           break;
@@ -56,34 +62,6 @@ public class MongoDBUtil {
       }
     } catch (Exception e) {
       log.error("createCollectionIfNotExists error - collectionName: '{}'", collectionName, e);
-    }
-  }
-
-  public static void createTTLIndexIfNotExists(String collectionName, String fieldName, long expireAfterSeconds) {
-    try {
-      MongoCollection<?> collection = DATABASE.getCollection(collectionName);
-
-      // Check if TTL index already exists
-      boolean indexExists = false;
-      for (var index : collection.listIndexes()) {
-        String indexOptions = index.toJson();
-        if (indexOptions.contains("\"expireAfterSeconds\": " + expireAfterSeconds)) {
-          indexExists = true;
-          break;
-        }
-      }
-
-      if (!indexExists) {
-        CreateIndexOptions options = new CreateIndexOptions().expireAfter(expireAfterSeconds, java.util.concurrent.TimeUnit.SECONDS);
-        collection.createIndex(Indexes.descending(fieldName), options);
-        log.info("TTL index created on {} in collection {} with expire time: {} seconds",
-                fieldName, collectionName, expireAfterSeconds);
-      } else {
-        log.info("TTL index already existed on {} in collection {}", fieldName, collectionName);
-      }
-    } catch (Exception e) {
-      log.error("createTTLIndexIfNotExists error - collectionName: '{}', fieldName: '{}'",
-               collectionName, fieldName, e);
     }
   }
 }

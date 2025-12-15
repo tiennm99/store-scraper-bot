@@ -3,13 +3,11 @@ package com.miti99.storescraperbot.repository;
 import static com.miti99.storescraperbot.repository.AbstractSingletonRepository.COMMON_COLLECTION_NAME;
 
 import com.google.common.base.CaseFormat;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.ReplaceOptions;
-import com.miti99.storescraperbot.env.Environment;
 import com.miti99.storescraperbot.model.AbstractModel;
 import com.miti99.storescraperbot.util.MongoDBUtil;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.ReplaceOptions;
 import java.lang.reflect.ParameterizedType;
 import lombok.extern.log4j.Log4j2;
 
@@ -58,13 +56,6 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
     return MongoDBUtil.DATABASE.getCollection(collectionName, classV);
   }
 
-  /**
-   * @return expire seconds. 0 mean never expire.
-   */
-  protected long getExpireSeconds() {
-    return 0;
-  }
-
   protected void init(K key) {
     try {
       if (exist(key)) {
@@ -85,12 +76,8 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   protected void save(K key, V data) {
     var databaseKey = getDatabaseKey(key);
     try {
-      var replaceOptions = new ReplaceOptions();
-      if (getExpireSeconds() > 0) {
-        // MongoDB TTL indexes need to be created at the collection level
-        // For now, we'll just save without TTL and handle TTL through indexes
-      }
-      collection().replaceOne(Filters.eq("_id", databaseKey), data, replaceOptions);
+      collection()
+          .replaceOne(Filters.eq("_id", databaseKey), data, new ReplaceOptions().upsert(true));
     } catch (Exception e) {
       log.error("save error - key {}, databaseKey {}", key, databaseKey, e);
     }
