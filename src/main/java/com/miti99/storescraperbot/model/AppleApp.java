@@ -8,4 +8,5 @@ import lombok.Setter;
 @Setter
 public class AppleApp extends AbstractModel<String> {
   AppleAppResponse app;
+  long millis; // TODO: handle expire
 }
