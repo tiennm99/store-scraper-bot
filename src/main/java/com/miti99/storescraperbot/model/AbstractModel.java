@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Con của AbstractModel phải có getter, setter & field không được final thì mới deserialize được
+ */
 @Getter
 @NoArgsConstructor
 @Setter
