@@ -22,13 +22,13 @@ configurations {
 
 dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.36")
-    implementation("org.mongodb:mongodb-driver-sync:5.2.1")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("com.google.guava:guava:33.4.0-jre")
     implementation("org.apache.commons:commons-math3:3.6.1")
     implementation("org.apache.logging.log4j:log4j-core:2.24.3")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.24.3")
+    implementation("org.mongodb:mongodb-driver-sync:5.2.1")
     implementation("org.telegram:telegrambots-client:8.0.0")
     implementation("org.telegram:telegrambots-extensions:8.0.0")
     implementation("org.telegram:telegrambots-longpolling:8.0.0")

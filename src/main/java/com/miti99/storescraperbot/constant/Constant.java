@@ -15,4 +15,6 @@ public class Constant {
   public static final ZoneId VIETNAM_ZONE_ID = ZoneId.of(VIETNAM_ZONE_ID_STRING);
   public static final long SECONDS_PER_DAY = ChronoUnit.DAYS.getDuration().getSeconds();
   public static final Set<DayOfWeek> WEEKENDS = Set.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY);
+
+  public static final String DEFAULT_DATABASE_NAME = "store-scraper-bot";
 }

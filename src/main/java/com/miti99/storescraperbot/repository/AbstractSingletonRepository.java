@@ -5,8 +5,7 @@ import lombok.extern.log4j.Log4j2;
 
 /**
  * Repository chỉ chứa 1 key duy nhất, public các method liên quan nhưng không cho truyền params
- * vào. Các repository loại này được lưu trong 1 collection duy nhất là "common" (do MongoDB không
- * giới hạn số lượng collection nên gom nhóm các repository loại này lại để quản lý tập trung)
+ * vào. Các repository loại này được lưu trong 1 collection duy nhất là "common"
  */
 @Log4j2
 public abstract class AbstractSingletonRepository<K, V extends AbstractModel<K>>
