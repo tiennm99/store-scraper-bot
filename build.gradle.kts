@@ -22,7 +22,6 @@ configurations {
 
 dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.36")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("com.google.guava:guava:33.4.0-jre")
     implementation("org.apache.commons:commons-math3:3.6.1")
