@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AppleApp extends AbstractModel<String> {
+public class AppleApp extends AbstractModel {
   AppleAppResponse app;
   long millis; // TODO: handle expire
 }

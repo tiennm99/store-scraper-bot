@@ -4,27 +4,31 @@ import static com.miti99.storescraperbot.repository.AbstractSingletonRepository.
 
 import com.google.common.base.CaseFormat;
 import com.miti99.storescraperbot.model.AbstractModel;
+import com.miti99.storescraperbot.util.GsonUtil;
 import com.miti99.storescraperbot.util.MongoDBUtil;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
 import java.lang.reflect.ParameterizedType;
 import lombok.extern.log4j.Log4j2;
+import org.bson.Document;
 
 /**
  * @param <K> class Key
  * @param <V> class Value
  */
 @Log4j2
-public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
+public abstract class AbstractRepository<K, V extends AbstractModel> {
   protected static final String SEPARATOR = "_";
   // protected final Class<K> classK = getKeyClass();
   protected final Class<V> classV = getDataClass();
   protected final String collectionName;
+  protected final MongoCollection<Document> collection;
 
   protected AbstractRepository(String collectionName) {
     this.collectionName = collectionName;
     MongoDBUtil.createCollectionIfNotExists(collectionName);
+    collection = MongoDBUtil.DATABASE.getCollection(collectionName, Document.class);
   }
 
   protected AbstractRepository() {
@@ -34,6 +38,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
           "Collection named '%s' is reserved".formatted(COMMON_COLLECTION_NAME));
     }
     MongoDBUtil.createCollectionIfNotExists(collectionName);
+    collection = MongoDBUtil.DATABASE.getCollection(collectionName, Document.class);
   }
 
   // protected Class<K> getKeyClass() {
@@ -52,8 +57,12 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
         ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[1];
   }
 
-  protected MongoCollection<V> collection() {
-    return MongoDBUtil.DATABASE.getCollection(collectionName, classV);
+  protected String encode(V data) {
+    return GsonUtil.toJson(data);
+  }
+
+  protected V decode(String json) {
+    return GsonUtil.fromJson(json, classV);
   }
 
   protected void init(K key) {
@@ -62,7 +71,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
         return;
       }
       V data = classV.getDeclaredConstructor().newInstance();
-      data.setKey(key);
+      data.setId(key);
       save(key, data);
     } catch (Exception e) {
       log.error("Error while initializing data", e);
@@ -76,8 +85,9 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   protected void save(K key, V data) {
     var databaseKey = getDatabaseKey(key);
     try {
-      collection()
-          .replaceOne(Filters.eq("_id", databaseKey), data, new ReplaceOptions().upsert(true));
+      var json = encode(data);
+      var doc = Document.parse(json);
+      collection.replaceOne(Filters.eq("_id", databaseKey), doc, new ReplaceOptions().upsert(true));
     } catch (Exception e) {
       log.error("save error - key {}, databaseKey {}", key, databaseKey, e);
     }
@@ -86,7 +96,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   protected boolean exist(K key) {
     var databaseKey = getDatabaseKey(key);
     try {
-      return collection().countDocuments(Filters.eq("_id", databaseKey)) > 0;
+      return collection.countDocuments(Filters.eq("_id", databaseKey)) > 0;
     } catch (Exception e) {
       log.error("exist error - key {}, databaseKey {}", key, databaseKey, e);
       return false;
@@ -96,7 +106,9 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   protected V load(K key) {
     var databaseKey = getDatabaseKey(key);
     try {
-      return collection().find(Filters.eq("_id", databaseKey)).first();
+      var doc = collection.find(Filters.eq("_id", databaseKey)).first();
+      if (doc == null) return null;
+      return decode(doc.toJson());
     } catch (Exception e) {
       log.error("load error - key {}, databaseKey {}", key, databaseKey, e);
       return null;
@@ -106,7 +118,7 @@ public abstract class AbstractRepository<K, V extends AbstractModel<K>> {
   protected void delete(K key) {
     var databaseKey = getDatabaseKey(key);
     try {
-      collection().deleteOne(Filters.eq("_id", databaseKey));
+      collection.deleteOne(Filters.eq("_id", databaseKey));
     } catch (Exception e) {
       log.error("delete error", e);
     }

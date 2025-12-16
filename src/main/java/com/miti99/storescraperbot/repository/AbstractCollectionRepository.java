@@ -8,7 +8,7 @@ import lombok.extern.log4j.Log4j2;
  * AbstractRepository để các nơi khác gọi
  */
 @Log4j2
-public abstract class AbstractCollectionRepository<K, V extends AbstractModel<K>>
+public abstract class AbstractCollectionRepository<K, V extends AbstractModel>
     extends AbstractRepository<K, V> {
 
   @Override

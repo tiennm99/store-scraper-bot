@@ -9,7 +9,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Group extends AbstractModel<Long> {
+public class Group extends AbstractModel {
   List<AppleAppInfo> appleApps = new ArrayList<>();
   List<GoogleAppInfo> googleApps = new ArrayList<>();
 }
