@@ -19,8 +19,6 @@ import org.bson.Document;
  */
 @Log4j2
 public abstract class AbstractRepository<K, V extends AbstractModel> {
-  protected static final String SEPARATOR = "_";
-  // protected final Class<K> classK = getKeyClass();
   protected final Class<V> classV = getDataClass();
   protected final String collectionName;
   protected final MongoCollection<Document> collection;
@@ -40,11 +38,6 @@ public abstract class AbstractRepository<K, V extends AbstractModel> {
     MongoDBUtil.createCollectionIfNotExists(collectionName);
     collection = MongoDBUtil.DATABASE.getCollection(collectionName, Document.class);
   }
-
-  // protected Class<K> getKeyClass() {
-  //   return (Class<K>)
-  //       ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
-  // }
 
   /**
    * Lấy ra class của V. Khi tạo 1 abstract class extends AbstractRepository mà không phải final thì
