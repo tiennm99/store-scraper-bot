@@ -15,9 +15,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.bson.Document;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.PojoCodecProvider;
 
 @Log4j2
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -28,15 +25,10 @@ public class MongoDBUtil {
   static {
     var serverApi = ServerApi.builder().version(ServerApiVersion.V1).build();
     var connectionString = new ConnectionString(MONGODB_CONNECTION_STRING);
-    var pojoCodecRegistry =
-        CodecRegistries.fromRegistries(
-            MongoClientSettings.getDefaultCodecRegistry(),
-            CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
     var settings =
         MongoClientSettings.builder()
             .applyConnectionString(connectionString)
             .serverApi(serverApi)
-            .codecRegistry(pojoCodecRegistry)
             .build();
     MONGO_CLIENT = MongoClients.create(settings);
     var databaseName =
