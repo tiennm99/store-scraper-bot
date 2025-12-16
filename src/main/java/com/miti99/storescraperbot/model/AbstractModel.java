@@ -1,22 +1,21 @@
 package com.miti99.storescraperbot.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.annotation.Nulls;
+import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Con của AbstractModel phải có getter, setter & field không được final thì mới deserialize được
- */
 @Getter
 @NoArgsConstructor
 @Setter
-public abstract class AbstractModel<K> {
-  @JsonSetter(nulls = Nulls.SKIP)
-  protected K key;
+public abstract class AbstractModel {
+  @SerializedName("_id")
+  protected String id;
 
-  @JsonProperty("class")
+  @SerializedName("class")
   protected String clazz = getClass().getSimpleName();
+
+  public void setId(Object id) {
+    this.id = String.valueOf(id);
+  }
 }

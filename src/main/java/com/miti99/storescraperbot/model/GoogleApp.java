@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class GoogleApp extends AbstractModel<String> {
+public class GoogleApp extends AbstractModel {
   GoogleAppResponse app;
   long millis; // TODO: handle expire
 }

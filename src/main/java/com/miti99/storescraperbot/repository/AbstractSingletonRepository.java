@@ -8,7 +8,7 @@ import lombok.extern.log4j.Log4j2;
  * vào. Các repository loại này được lưu trong 1 collection duy nhất là "common"
  */
 @Log4j2
-public abstract class AbstractSingletonRepository<K, V extends AbstractModel<K>>
+public abstract class AbstractSingletonRepository<K, V extends AbstractModel>
     extends AbstractRepository<K, V> {
 
   public static final String COMMON_COLLECTION_NAME = "common";
