@@ -2,8 +2,11 @@ package com.miti99.storescraperbot.api.apple;
 
 import com.miti99.storescraperbot.api.apple.request.AppleAppRequest;
 import com.miti99.storescraperbot.api.apple.response.AppleAppResponse;
+import com.miti99.storescraperbot.constant.Constant;
+import com.miti99.storescraperbot.model.AppleApp;
 import com.miti99.storescraperbot.repository.AppleAppRepository;
 import com.miti99.storescraperbot.util.GsonUtil;
+import com.miti99.storescraperbot.util.Time;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -51,18 +54,23 @@ public class AppStoreScraper {
   }
 
   public static AppleAppResponse getAppResponse(String appId, String country) {
-    boolean isInCache = AppleAppRepository.INSTANCE.exist(appId);
-    if (isInCache) {
-      var app = AppleAppRepository.INSTANCE.load(appId);
-      return app.getApp();
-    } else {
+    long now = Time.currentTimeMillis();
+    AppleApp app = null;
+    if (AppleAppRepository.INSTANCE.exist(appId)) {
+      app = AppleAppRepository.INSTANCE.load(appId);
+      if (now - app.getMillis() > Constant.APP_CACHE_MILLIS) {
+        app = null;
+      }
+    }
+    if (app == null) {
       var response = app(new AppleAppRequest(appId, country));
       AppleAppRepository.INSTANCE.init(appId);
-      var app = AppleAppRepository.INSTANCE.load(appId);
+      app = AppleAppRepository.INSTANCE.load(appId);
       app.setApp(response);
+      app.setMillis(now);
       AppleAppRepository.INSTANCE.save(appId, app);
-      return response;
     }
+    return app.getApp();
   }
 
   public static LocalDate getAppUpdated(String appId, String country) {

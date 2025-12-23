@@ -2,8 +2,11 @@ package com.miti99.storescraperbot.api.google;
 
 import com.miti99.storescraperbot.api.google.request.GoogleAppRequest;
 import com.miti99.storescraperbot.api.google.response.GoogleAppResponse;
+import com.miti99.storescraperbot.constant.Constant;
+import com.miti99.storescraperbot.model.GoogleApp;
 import com.miti99.storescraperbot.repository.GoogleAppRepository;
 import com.miti99.storescraperbot.util.GsonUtil;
+import com.miti99.storescraperbot.util.Time;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -50,18 +53,23 @@ public class GooglePlayScraper {
   }
 
   private static GoogleAppResponse getAppResponse(String appId, String country) {
-    boolean isInCache = GoogleAppRepository.INSTANCE.exist(appId);
-    if (isInCache) {
-      var app = GoogleAppRepository.INSTANCE.load(appId);
-      return app.getApp();
-    } else {
+    long now = Time.currentTimeMillis();
+    GoogleApp app = null;
+    if (GoogleAppRepository.INSTANCE.exist(appId)) {
+      app = GoogleAppRepository.INSTANCE.load(appId);
+      if (now - app.getMillis() > Constant.APP_CACHE_MILLIS) {
+        app = null;
+      }
+    }
+    if (app == null) {
       var response = app(new GoogleAppRequest(appId, country));
       GoogleAppRepository.INSTANCE.init(appId);
-      var app = GoogleAppRepository.INSTANCE.load(appId);
+      app = GoogleAppRepository.INSTANCE.load(appId);
       app.setApp(response);
+      app.setMillis(now);
       GoogleAppRepository.INSTANCE.save(appId, app);
-      return response;
     }
+    return app.getApp();
   }
 
   public static LocalDate getLastUpdateOfApp(String appId, String country) {
