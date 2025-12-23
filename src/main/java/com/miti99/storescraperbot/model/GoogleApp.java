@@ -8,5 +8,5 @@ import lombok.Setter;
 @Setter
 public class GoogleApp extends AbstractModel {
   GoogleAppResponse app;
-  long millis; // TODO: handle expire
+  long millis;
 }
