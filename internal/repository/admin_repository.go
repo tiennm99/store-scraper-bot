@@ -11,22 +11,36 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// AdminRepository persists the singleton Admin document.
+// Java equivalent stores it in the "common" collection at _id="admin".
 type AdminRepository struct {
 	collection *mongo.Collection
 }
 
 func NewAdminRepository() *AdminRepository {
-	return &AdminRepository{
-		collection: GetCollection("admin"),
+	return &AdminRepository{collection: GetCollection("common")}
+}
+
+// Init creates the singleton document if it does not yet exist.
+func (r *AdminRepository) Init() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	count, err := r.collection.CountDocuments(ctx, bson.M{"_id": model.AdminID})
+	if err != nil {
+		return fmt.Errorf("failed to count admin: %w", err)
 	}
+	if count > 0 {
+		return nil
+	}
+	return r.Save(ctx, model.NewAdmin())
 }
 
 func (r *AdminRepository) Get(ctx context.Context) (*model.Admin, error) {
 	admin := &model.Admin{}
-	err := r.collection.FindOne(ctx, bson.M{"_id": "admin"}).Decode(admin)
+	err := r.collection.FindOne(ctx, bson.M{"_id": model.AdminID}).Decode(admin)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			// Return new admin if not found
 			return model.NewAdmin(), nil
 		}
 		return nil, fmt.Errorf("failed to get admin: %w", err)
@@ -36,43 +50,39 @@ func (r *AdminRepository) Get(ctx context.Context) (*model.Admin, error) {
 
 func (r *AdminRepository) Save(ctx context.Context, admin *model.Admin) error {
 	opts := options.Replace().SetUpsert(true)
-	_, err := r.collection.ReplaceOne(ctx, bson.M{"_id": "admin"}, admin, opts)
+	_, err := r.collection.ReplaceOne(ctx, bson.M{"_id": model.AdminID}, admin, opts)
 	if err != nil {
 		return fmt.Errorf("failed to save admin: %w", err)
 	}
 	return nil
 }
 
-func (r *AdminRepository) AddGroup(groupID int64) error {
+func (r *AdminRepository) AddGroup(groupID int64) (added bool, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	admin, err := r.Get(ctx)
 	if err != nil {
-		return err
+		return false, err
 	}
-
 	if !admin.AddGroup(groupID) {
-		return fmt.Errorf("group already exists")
+		return false, nil
 	}
-
-	return r.Save(ctx, admin)
+	return true, r.Save(ctx, admin)
 }
 
-func (r *AdminRepository) RemoveGroup(groupID int64) error {
+func (r *AdminRepository) RemoveGroup(groupID int64) (removed bool, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	admin, err := r.Get(ctx)
 	if err != nil {
-		return err
+		return false, err
 	}
-
 	if !admin.RemoveGroup(groupID) {
-		return fmt.Errorf("group not found")
+		return false, nil
 	}
-
-	return r.Save(ctx, admin)
+	return true, r.Save(ctx, admin)
 }
 
 func (r *AdminRepository) HasGroup(groupID int64) (bool, error) {
@@ -83,7 +93,6 @@ func (r *AdminRepository) HasGroup(groupID int64) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
 	return admin.HasGroup(groupID), nil
 }
 
@@ -95,6 +104,5 @@ func (r *AdminRepository) GetAllGroups() ([]int64, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return admin.Groups, nil
 }

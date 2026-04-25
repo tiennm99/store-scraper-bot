@@ -5,66 +5,66 @@ import (
 	"strings"
 )
 
+// BuildTable mirrors Java bot/table/Table.java:
+//   - left-aligned columns padded to max(header, cell) width
+//   - "│" column separator
+//   - row separator inserted every 5 rows using "─" cells joined by "─┼─"
+//
+// Output is intended to be wrapped in <pre> for Telegram HTML rendering.
 func BuildTable(headers []string, rows [][]string) string {
-	if len(rows) == 0 {
-		return ""
-	}
-
-	// Calculate column widths
-	columnWidths := make([]int, len(headers))
-	for i, header := range headers {
-		columnWidths[i] = len(header)
-	}
-
-	for _, row := range rows {
-		for i, cell := range row {
-			if i < len(columnWidths) && len(cell) > columnWidths[i] {
-				columnWidths[i] = len(cell)
-			}
-		}
-	}
-
-	// Build table
+	widths := computeWidths(headers, rows)
 	var sb strings.Builder
 
-	// Top border
-	sb.WriteString("```\n")
-
-	// Header
-	for i, header := range headers {
-		sb.WriteString(padRight(header, columnWidths[i]))
-		if i < len(headers)-1 {
-			sb.WriteString(" | ")
-		}
-	}
+	writeRow(&sb, headers, widths)
 	sb.WriteString("\n")
+	writeSeparator(&sb, widths)
 
-	// Separator
-	for i, width := range columnWidths {
-		sb.WriteString(strings.Repeat("-", width))
-		if i < len(columnWidths)-1 {
-			sb.WriteString("-+-")
+	for i, row := range rows {
+		sb.WriteString("\n")
+		if i > 0 && i%5 == 0 {
+			writeSeparator(&sb, widths)
+			sb.WriteString("\n")
 		}
+		writeRow(&sb, row, widths)
 	}
-	sb.WriteString("\n")
+	return sb.String()
+}
 
-	// Rows
+func computeWidths(headers []string, rows [][]string) []int {
+	widths := make([]int, len(headers))
+	for i, h := range headers {
+		widths[i] = len(h)
+	}
 	for _, row := range rows {
 		for i, cell := range row {
-			if i < len(columnWidths) {
-				sb.WriteString(padRight(cell, columnWidths[i]))
-				if i < len(row)-1 {
-					sb.WriteString(" | ")
-				}
+			if i < len(widths) && len(cell) > widths[i] {
+				widths[i] = len(cell)
 			}
 		}
-		sb.WriteString("\n")
 	}
+	return widths
+}
 
-	// Bottom border
-	sb.WriteString("```")
+func writeRow(sb *strings.Builder, cells []string, widths []int) {
+	for i, w := range widths {
+		var cell string
+		if i < len(cells) {
+			cell = cells[i]
+		}
+		sb.WriteString(padRight(cell, w))
+		if i < len(widths)-1 {
+			sb.WriteString(" │ ")
+		}
+	}
+}
 
-	return sb.String()
+func writeSeparator(sb *strings.Builder, widths []int) {
+	for i, w := range widths {
+		sb.WriteString(strings.Repeat("─", w))
+		if i < len(widths)-1 {
+			sb.WriteString("─┼─")
+		}
+	}
 }
 
 func padRight(s string, length int) string {
@@ -78,14 +78,18 @@ func TruncateString(s string, maxLen int) string {
 	if len(s) <= maxLen {
 		return s
 	}
+	if maxLen <= 3 {
+		return s[:maxLen]
+	}
 	return s[:maxLen-3] + "..."
 }
 
 func FormatNumber(n int64) string {
-	if n >= 1000000 {
-		return fmt.Sprintf("%.1fM", float64(n)/1000000)
-	} else if n >= 1000 {
-		return fmt.Sprintf("%.1fK", float64(n)/1000)
+	if n >= 1_000_000 {
+		return fmt.Sprintf("%.1fM", float64(n)/1_000_000)
+	}
+	if n >= 1_000 {
+		return fmt.Sprintf("%.1fK", float64(n)/1_000)
 	}
 	return fmt.Sprintf("%d", n)
 }

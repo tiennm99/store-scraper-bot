@@ -12,14 +12,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// GoogleAppRepository caches Google Play responses in the "google_app" collection.
 type GoogleAppRepository struct {
 	collection *mongo.Collection
 }
 
 func NewGoogleAppRepository() *GoogleAppRepository {
-	return &GoogleAppRepository{
-		collection: GetCollection("google_app"),
-	}
+	return &GoogleAppRepository{collection: GetCollection("google_app")}
 }
 
 func (r *GoogleAppRepository) Get(ctx context.Context, appID string) (*model.GoogleApp, error) {
@@ -27,7 +26,7 @@ func (r *GoogleAppRepository) Get(ctx context.Context, appID string) (*model.Goo
 	err := r.collection.FindOne(ctx, bson.M{"_id": appID}).Decode(app)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, nil // Not found
+			return nil, nil
 		}
 		return nil, fmt.Errorf("failed to get google app: %w", err)
 	}
@@ -35,9 +34,8 @@ func (r *GoogleAppRepository) Get(ctx context.Context, appID string) (*model.Goo
 }
 
 func (r *GoogleAppRepository) Save(ctx context.Context, app *model.GoogleApp) error {
-	app.UpdatedAt = time.Now()
 	opts := options.Replace().SetUpsert(true)
-	_, err := r.collection.ReplaceOne(ctx, bson.M{"_id": app.Key}, app, opts)
+	_, err := r.collection.ReplaceOne(ctx, bson.M{"_id": app.ID}, app, opts)
 	if err != nil {
 		return fmt.Errorf("failed to save google app: %w", err)
 	}
@@ -49,13 +47,12 @@ func (r *GoogleAppRepository) GetCached(appID string) (*model.GoogleApp, error) 
 	defer cancel()
 
 	app, err := r.Get(ctx, appID)
-	if err != nil {
+	if err != nil || app == nil {
 		return nil, err
 	}
-
-	if app != nil && !app.IsExpired(config.GlobalConfig.AppCacheSeconds) {
-		return app, nil
+	cacheMillis := int64(config.GlobalConfig.AppCacheSeconds) * 1000
+	if app.IsExpired(time.Now().UnixMilli(), cacheMillis) {
+		return nil, nil
 	}
-
-	return nil, nil // Cache expired or not found
+	return app, nil
 }

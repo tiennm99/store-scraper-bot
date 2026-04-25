@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -17,15 +18,17 @@ const (
 	Production  Environment = "PRODUCTION"
 )
 
+const DefaultDatabaseName = "store-scraper-bot"
+
 type Config struct {
 	// Telegram
 	TelegramBotToken    string
 	TelegramBotUsername string
 
 	// MongoDB
-	MongoURI        string
-	MongoDatabase   string
-	MongoTimeout    time.Duration
+	MongoURI      string
+	MongoDatabase string
+	MongoTimeout  time.Duration
 
 	// Application
 	Env          Environment
@@ -34,10 +37,10 @@ type Config struct {
 	SourceCommit string
 
 	// Constants
-	AppCacheSeconds           int
-	NumDaysWarningNotUpdated  int
-	ScheduleCheckAppTime      string
-	VietnamLocation           *time.Location
+	AppCacheSeconds          int
+	NumDaysWarningNotUpdated int
+	ScheduleCheckAppTime     string
+	VietnamLocation          *time.Location
 
 	// Logger
 	Logger *zap.Logger
@@ -48,7 +51,6 @@ var GlobalConfig *Config
 func Load() (*Config, error) {
 	cfg := &Config{}
 
-	// Telegram
 	cfg.TelegramBotToken = getEnv("TELEGRAM_BOT_TOKEN", "")
 	if cfg.TelegramBotToken == "" {
 		return nil, fmt.Errorf("TELEGRAM_BOT_TOKEN is required")
@@ -58,12 +60,14 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("TELEGRAM_BOT_USERNAME is required")
 	}
 
-	// MongoDB
-	cfg.MongoURI = getEnv("MONGO_URI", "mongodb://localhost:27017")
-	cfg.MongoDatabase = getEnv("MONGO_DATABASE", "store_scraper_bot")
+	// Java parity: prefer MONGODB_CONNECTION_STRING. Fall back to MONGO_URI.
+	cfg.MongoURI = getEnv("MONGODB_CONNECTION_STRING", getEnv("MONGO_URI", "mongodb://localhost:27017"))
+	cfg.MongoDatabase = getEnv("MONGO_DATABASE", "")
+	if cfg.MongoDatabase == "" {
+		cfg.MongoDatabase = databaseFromURI(cfg.MongoURI)
+	}
 	cfg.MongoTimeout = time.Duration(getEnvInt("MONGO_TIMEOUT_SECONDS", 10)) * time.Second
 
-	// Application
 	envStr := getEnv("ENV", "DEVELOPMENT")
 	if envStr == "PRODUCTION" {
 		cfg.Env = Production
@@ -83,19 +87,16 @@ func Load() (*Config, error) {
 
 	cfg.SourceCommit = getEnv("SOURCE_COMMIT", "unknown")
 
-	// Constants
 	cfg.AppCacheSeconds = getEnvInt("APP_CACHE_SECONDS", 600)
 	cfg.NumDaysWarningNotUpdated = getEnvInt("NUM_DAYS_WARNING_NOT_UPDATED", 30)
-	cfg.ScheduleCheckAppTime = getEnv("SCHEDULE_CHECK_APP_TIME", "0 7 * * *") // Cron format: 7:00 AM daily
+	cfg.ScheduleCheckAppTime = getEnv("SCHEDULE_CHECK_APP_TIME", "0 7 * * *")
 
-	// Vietnam timezone
 	loc, err := time.LoadLocation("Asia/Ho_Chi_Minh")
 	if err != nil {
 		return nil, fmt.Errorf("failed to load Vietnam timezone: %w", err)
 	}
 	cfg.VietnamLocation = loc
 
-	// Initialize logger
 	var logger *zap.Logger
 	if cfg.Env == Production {
 		logger, err = zap.NewProduction()
@@ -109,6 +110,34 @@ func Load() (*Config, error) {
 
 	GlobalConfig = cfg
 	return cfg, nil
+}
+
+// databaseFromURI extracts the database name from a Mongo connection string,
+// falling back to DefaultDatabaseName (Java behavior).
+func databaseFromURI(uri string) string {
+	opts := options.Client().ApplyURI(uri)
+	if opts != nil && opts.Auth != nil && opts.Auth.AuthSource != "" {
+		// AuthSource is not the data DB; ignore it.
+		_ = opts
+	}
+	// Manual parse: scheme://...host[:port]/<dbname>?<params>
+	rest := uri
+	if idx := strings.Index(rest, "://"); idx >= 0 {
+		rest = rest[idx+3:]
+	}
+	slash := strings.Index(rest, "/")
+	if slash < 0 {
+		return DefaultDatabaseName
+	}
+	tail := rest[slash+1:]
+	if q := strings.Index(tail, "?"); q >= 0 {
+		tail = tail[:q]
+	}
+	tail = strings.TrimSpace(tail)
+	if tail == "" {
+		return DefaultDatabaseName
+	}
+	return tail
 }
 
 func getEnv(key, defaultValue string) string {
@@ -146,8 +175,4 @@ func (c *Config) IsAdmin(userID int64) bool {
 		}
 	}
 	return false
-}
-
-func (c *Config) GetScopeName() string {
-	return strings.ToLower(string(c.Env))
 }

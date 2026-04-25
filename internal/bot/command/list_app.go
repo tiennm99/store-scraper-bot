@@ -3,71 +3,59 @@ package command
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/miti99/store-scraper-bot-go/internal/config"
+	"github.com/miti99/store-scraper-bot-go/internal/model"
 	"github.com/miti99/store-scraper-bot-go/internal/repository"
+	"github.com/miti99/store-scraper-bot-go/internal/util"
 )
 
+// /listapp — Java ListAppCommand. Two tables (Apple / Google) of tracked apps.
 type ListAppCommand struct {
-	BaseCommand
+	cfg       *config.Config
 	adminRepo *repository.AdminRepository
 	groupRepo *repository.GroupRepository
 }
 
 func NewListAppCommand(cfg *config.Config, adminRepo *repository.AdminRepository, groupRepo *repository.GroupRepository) *ListAppCommand {
-	return &ListAppCommand{
-		BaseCommand: BaseCommand{cfg: cfg},
-		adminRepo:   adminRepo,
-		groupRepo:   groupRepo,
-	}
+	return &ListAppCommand{cfg: cfg, adminRepo: adminRepo, groupRepo: groupRepo}
 }
 
-func (c *ListAppCommand) Execute(message *tgbotapi.Message) string {
-	if !c.requireAdmin(message) {
-		return "You are not authorized to use this command."
+func (c *ListAppCommand) Execute(msg *tgbotapi.Message, sender Sender) {
+	if !authorizeGroup(msg.Chat.ID, c.adminRepo, sender) {
+		return
 	}
-
-	groupID := message.Chat.ID
-	hasGroup, err := c.adminRepo.HasGroup(groupID)
-	if err != nil {
-		return fmt.Sprintf("Failed to check group: %v", err)
+	if len(splitArgs(msg.CommandArguments())) != 0 {
+		_ = sender.SendMessage(msg.Chat.ID, "Invalid arguments")
+		return
 	}
-	if !hasGroup {
-		return "This group is not registered."
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
-	group, err := c.groupRepo.Get(ctx, groupID)
+	group, err := c.groupRepo.Get(ctx, msg.Chat.ID)
 	if err != nil {
-		return fmt.Sprintf("Failed to get group: %v", err)
+		_ = sender.SendMessage(msg.Chat.ID, "Internal server error")
+		return
 	}
 
 	var sb strings.Builder
-	sb.WriteString("*Apps in this group:*\n\n")
+	sb.WriteString("<b>Apple Apps</b>\n")
+	sb.WriteString(formatAppTable(group.AppleApps))
+	sb.WriteString("\n<b>Google Apps</b>\n")
+	sb.WriteString(formatAppTable(group.GoogleApps))
+	_ = sender.SendMessage(msg.Chat.ID, sb.String())
+}
 
-	if len(group.AppleApps) > 0 {
-		sb.WriteString("*Apple Apps:*\n")
-		for i, app := range group.AppleApps {
-			sb.WriteString(fmt.Sprintf("%d. %s (%s)\n", i+1, app.AppID, app.Country))
-		}
-		sb.WriteString("\n")
+func formatAppTable(apps []model.AppInfo) string {
+	if len(apps) == 0 {
+		return "<i>(none)</i>\n"
 	}
-
-	if len(group.GoogleApps) > 0 {
-		sb.WriteString("*Google Apps:*\n")
-		for i, app := range group.GoogleApps {
-			sb.WriteString(fmt.Sprintf("%d. %s (%s)\n", i+1, app.AppID, app.Country))
-		}
+	rows := make([][]string, 0, len(apps))
+	for i, a := range apps {
+		rows = append(rows, []string{strconv.Itoa(i + 1), a.AppID, a.Country})
 	}
-
-	if len(group.AppleApps) == 0 && len(group.GoogleApps) == 0 {
-		return "No apps in this group."
-	}
-
-	return sb.String()
+	return fmt.Sprintf("<pre>%s</pre>\n", util.BuildTable([]string{"#", "AppId", "Country"}, rows))
 }

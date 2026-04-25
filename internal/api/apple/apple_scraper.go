@@ -5,111 +5,107 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
+	"github.com/miti99/store-scraper-bot-go/internal/api/apple/request"
 	"github.com/miti99/store-scraper-bot-go/internal/config"
 	"github.com/miti99/store-scraper-bot-go/internal/model"
 	"github.com/miti99/store-scraper-bot-go/internal/repository"
 	"go.uber.org/zap"
 )
 
-const appleAPIURL = "https://store-scraper.vercel.app/apple/app"
-
-type AppleAppRequest struct {
-	ID      *int64  `json:"id,omitempty"`
-	AppID   *string `json:"appId,omitempty"`
-	Country string  `json:"country"`
-	Ratings bool    `json:"ratings"`
-}
+// BaseURL mirrors Java AppStoreScraper (api/apple/AppStoreScraper.java).
+const BaseURL = "https://store-scraper.vercel.app/apple"
 
 type AppleScraper struct {
-	httpClient *http.Client
-	appRepo    *repository.AppleAppRepository
-	logger     *zap.Logger
+	repo   *repository.AppleAppRepository
+	cfg    *config.Config
+	client *http.Client
+	logger *zap.Logger
 }
 
-func NewAppleScraper(appRepo *repository.AppleAppRepository, cfg *config.Config) *AppleScraper {
+func NewAppleScraper(repo *repository.AppleAppRepository, cfg *config.Config) *AppleScraper {
 	return &AppleScraper{
-		httpClient: &http.Client{
-			Timeout: 30 * time.Second,
-		},
-		appRepo: appRepo,
-		logger:  cfg.Logger,
+		repo:   repo,
+		cfg:    cfg,
+		client: &http.Client{Timeout: 30 * time.Second},
+		logger: cfg.Logger,
 	}
 }
 
-func (s *AppleScraper) GetApp(appID, country string) (*model.AppleAppResponse, error) {
-	// Check cache first
-	cachedApp, err := s.appRepo.GetCached(appID)
+// RawApp posts the request and returns the raw JSON body.
+func (s *AppleScraper) RawApp(req request.AppleAppRequest) (string, error) {
+	body, err := json.Marshal(req)
 	if err != nil {
-		s.logger.Error("Failed to get cached apple app", zap.Error(err), zap.String("appId", appID))
+		return "", fmt.Errorf("marshal apple request: %w", err)
 	}
-	if cachedApp != nil {
-		s.logger.Debug("Returning cached apple app", zap.String("appId", appID))
-		return &cachedApp.App, nil
+	httpReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, BaseURL+"/app", bytes.NewReader(body))
+	if err != nil {
+		return "", fmt.Errorf("build apple request: %w", err)
 	}
+	httpReq.Header.Set("Content-Type", "application/json")
 
-	// Fetch from API
-	s.logger.Info("Fetching apple app from API", zap.String("appId", appID), zap.String("country", country))
-	response, err := s.fetchFromAPI(appID, country)
+	resp, err := s.client.Do(httpReq)
+	if err != nil {
+		return "", fmt.Errorf("apple HTTP error: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("apple HTTP status %d", resp.StatusCode)
+	}
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("read apple body: %w", err)
+	}
+	return string(raw), nil
+}
+
+// App posts the request and decodes the response.
+func (s *AppleScraper) App(req request.AppleAppRequest) (*model.AppleAppResponse, error) {
+	raw, err := s.RawApp(req)
 	if err != nil {
 		return nil, err
 	}
+	out := &model.AppleAppResponse{}
+	if err := json.Unmarshal([]byte(raw), out); err != nil {
+		return nil, fmt.Errorf("decode apple response: %w", err)
+	}
+	return out, nil
+}
 
-	// Save to cache
+// GetApp returns a cached response (if fresh) or fetches by bundleId and caches.
+func (s *AppleScraper) GetApp(appID, country string) (*model.AppleAppResponse, error) {
+	if cached, _ := s.repo.GetCached(appID); cached != nil {
+		return &cached.App, nil
+	}
+	resp, err := s.App(request.ByBundleID(appID, country))
+	if err != nil {
+		return nil, err
+	}
+	s.cache(resp)
+	return resp, nil
+}
+
+// FetchAndCache fetches by an arbitrary request (track ID or bundle ID).
+func (s *AppleScraper) FetchAndCache(req request.AppleAppRequest) (*model.AppleAppResponse, error) {
+	resp, err := s.App(req)
+	if err != nil {
+		return nil, err
+	}
+	s.cache(resp)
+	return resp, nil
+}
+
+func (s *AppleScraper) cache(resp *model.AppleAppResponse) {
+	if resp == nil || resp.AppID == "" {
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
-	appleApp := model.NewAppleApp(appID, *response)
-	if err := s.appRepo.Save(ctx, appleApp); err != nil {
-		s.logger.Error("Failed to save apple app to cache", zap.Error(err), zap.String("appId", appID))
+	entry := model.NewAppleApp(resp.AppID, *resp, time.Now().UnixMilli())
+	if err := s.repo.Save(ctx, entry); err != nil {
+		s.logger.Warn("failed to cache apple app", zap.String("appId", resp.AppID), zap.Error(err))
 	}
-
-	return response, nil
-}
-
-func (s *AppleScraper) fetchFromAPI(appID, country string) (*model.AppleAppResponse, error) {
-	request := AppleAppRequest{
-		AppID:   &appID,
-		Country: country,
-		Ratings: true,
-	}
-
-	requestBody, err := json.Marshal(request)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	req, err := http.NewRequest("POST", appleAPIURL, bytes.NewBuffer(requestBody))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := s.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API returned status code: %d", resp.StatusCode)
-	}
-
-	var response model.AppleAppResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	return &response, nil
-}
-
-func (s *AppleScraper) GetAppUpdated(appID, country string) (string, error) {
-	app, err := s.GetApp(appID, country)
-	if err != nil {
-		return "", err
-	}
-	return app.Updated, nil
 }

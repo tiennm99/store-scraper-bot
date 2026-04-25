@@ -12,15 +12,14 @@ import (
 	"go.uber.org/zap"
 )
 
+// parseMode mirrors Java StoreScrapeBotTelegramClient: HTML for all messages.
+const parseMode = "HTML"
+
 type Bot struct {
-	api           *tgbotapi.BotAPI
-	cfg           *config.Config
-	adminRepo     *repository.AdminRepository
-	groupRepo     *repository.GroupRepository
-	appleScraper  *apple.AppleScraper
-	googleScraper *google.GoogleScraper
-	commands      map[string]command.Command
-	logger        *zap.Logger
+	api      *tgbotapi.BotAPI
+	cfg      *config.Config
+	commands map[string]command.Command
+	logger   *zap.Logger
 }
 
 func NewBot(
@@ -30,107 +29,99 @@ func NewBot(
 	appleScraper *apple.AppleScraper,
 	googleScraper *google.GoogleScraper,
 ) (*Bot, error) {
-	bot, err := tgbotapi.NewBotAPI(cfg.TelegramBotToken)
+	api, err := tgbotapi.NewBotAPI(cfg.TelegramBotToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create telegram bot: %w", err)
 	}
+	api.Debug = cfg.Env == config.Development
+	cfg.Logger.Info("Authorized on account", zap.String("username", api.Self.UserName))
 
-	bot.Debug = cfg.Env == config.Development
+	b := &Bot{api: api, cfg: cfg, commands: map[string]command.Command{}, logger: cfg.Logger}
 
-	cfg.Logger.Info("Authorized on account", zap.String("username", bot.Self.UserName))
+	// Java command identifiers (StoreScrapeBot constructor) — keep these strings
+	// matching exactly so existing users' muscle memory still works.
+	b.commands["info"] = command.NewInfoCommand(cfg)
+	b.commands["addgroup"] = command.NewAddGroupCommand(cfg, adminRepo, groupRepo)
+	b.commands["delgroup"] = command.NewDeleteGroupCommand(cfg, adminRepo, groupRepo)
+	b.commands["listgroup"] = command.NewListGroupCommand(cfg, adminRepo)
+	b.commands["addapple"] = command.NewAddAppleAppCommand(cfg, adminRepo, groupRepo, appleScraper)
+	b.commands["delapple"] = command.NewDeleteAppleAppCommand(cfg, adminRepo, groupRepo)
+	b.commands["addgoogle"] = command.NewAddGoogleAppCommand(cfg, adminRepo, groupRepo, googleScraper)
+	b.commands["delgoogle"] = command.NewDeleteGoogleAppCommand(cfg, adminRepo, groupRepo)
+	b.commands["listapp"] = command.NewListAppCommand(cfg, adminRepo, groupRepo)
+	b.commands["checkapp"] = command.NewCheckAppCommand(cfg, adminRepo, groupRepo, appleScraper, googleScraper)
+	b.commands["checkappscore"] = command.NewCheckAppScoresCommand(cfg, adminRepo, groupRepo, appleScraper, googleScraper)
+	b.commands["rawappleapp"] = command.NewRawAppleAppCommand(cfg, appleScraper)
+	b.commands["rawgoogleapp"] = command.NewRawGoogleAppCommand(cfg, googleScraper)
 
-	b := &Bot{
-		api:           bot,
-		cfg:           cfg,
-		adminRepo:     adminRepo,
-		groupRepo:     groupRepo,
-		appleScraper:  appleScraper,
-		googleScraper: googleScraper,
-		commands:      make(map[string]command.Command),
-		logger:        cfg.Logger,
-	}
-
-	b.registerCommands()
 	return b, nil
-}
-
-func (b *Bot) registerCommands() {
-	b.commands["addgroup"] = command.NewAddGroupCommand(b.cfg, b.adminRepo, b.groupRepo)
-	b.commands["deletegroup"] = command.NewDeleteGroupCommand(b.cfg, b.adminRepo, b.groupRepo)
-	b.commands["listgroup"] = command.NewListGroupCommand(b.cfg, b.adminRepo)
-	b.commands["addapple"] = command.NewAddAppleAppCommand(b.cfg, b.adminRepo, b.groupRepo, b.appleScraper)
-	b.commands["deleteapple"] = command.NewDeleteAppleAppCommand(b.cfg, b.adminRepo, b.groupRepo)
-	b.commands["addgoogle"] = command.NewAddGoogleAppCommand(b.cfg, b.adminRepo, b.groupRepo, b.googleScraper)
-	b.commands["deletegoogle"] = command.NewDeleteGoogleAppCommand(b.cfg, b.adminRepo, b.groupRepo)
-	b.commands["listapp"] = command.NewListAppCommand(b.cfg, b.adminRepo, b.groupRepo)
-	b.commands["checkapp"] = command.NewCheckAppCommand(b.cfg, b.adminRepo, b.groupRepo, b.appleScraper, b.googleScraper)
-	b.commands["checkappscores"] = command.NewCheckAppScoresCommand(b.cfg, b.adminRepo, b.groupRepo, b.appleScraper, b.googleScraper)
-	b.commands["rawapple"] = command.NewRawAppleAppCommand(b.cfg, b.appleScraper)
-	b.commands["rawgoogle"] = command.NewRawGoogleAppCommand(b.cfg, b.googleScraper)
-	b.commands["info"] = command.NewInfoCommand(b.cfg)
 }
 
 func (b *Bot) Start() {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
-
 	updates := b.api.GetUpdatesChan(u)
-
 	for update := range updates {
-		if update.Message == nil {
+		if update.Message == nil || !update.Message.IsCommand() {
 			continue
 		}
-
-		if !update.Message.IsCommand() {
-			continue
-		}
-
 		go b.handleCommand(update.Message)
 	}
 }
 
 func (b *Bot) handleCommand(message *tgbotapi.Message) {
-	commandName := message.Command()
-	cmd, exists := b.commands[commandName]
-
-	if !exists {
-		b.logger.Debug("Unknown command", zap.String("command", commandName))
+	defer func() {
+		if r := recover(); r != nil {
+			b.logger.Error("panic in command", zap.Any("panic", r))
+			_ = b.SendMessage(message.Chat.ID, "Internal server error")
+		}
+	}()
+	name := message.Command()
+	cmd, ok := b.commands[name]
+	if !ok {
+		b.logger.Debug("Unknown command", zap.String("command", name))
 		return
 	}
-
 	b.logger.Info("Executing command",
-		zap.String("command", commandName),
+		zap.String("command", name),
 		zap.Int64("userId", message.From.ID),
 		zap.Int64("chatId", message.Chat.ID))
-
-	response := cmd.Execute(message)
-	if response != "" {
-		msg := tgbotapi.NewMessage(message.Chat.ID, response)
-		msg.ParseMode = "Markdown"
-		msg.DisableWebPagePreview = true
-
-		if _, err := b.api.Send(msg); err != nil {
-			b.logger.Error("Failed to send message", zap.Error(err))
-		}
-	}
+	cmd.Execute(message, b)
 }
 
-func (b *Bot) SendMessage(chatID int64, text string) error {
-	msg := tgbotapi.NewMessage(chatID, text)
-	msg.ParseMode = "Markdown"
+// SendMessage sends an HTML-parsed message (Java parity).
+func (b *Bot) SendMessage(chatID int64, html string) error {
+	msg := tgbotapi.NewMessage(chatID, html)
+	msg.ParseMode = parseMode
 	msg.DisableWebPagePreview = true
-	msg.DisableNotification = false
-
 	_, err := b.api.Send(msg)
+	if err != nil {
+		b.logger.Warn("send message failed", zap.Int64("chatId", chatID), zap.Error(err))
+	}
 	return err
 }
 
-func (b *Bot) SendMessageSilent(chatID int64, text string) error {
-	msg := tgbotapi.NewMessage(chatID, text)
-	msg.ParseMode = "Markdown"
+// SendMessageSilent sends an HTML message with notifications muted (weekend behavior).
+func (b *Bot) SendMessageSilent(chatID int64, html string) error {
+	msg := tgbotapi.NewMessage(chatID, html)
+	msg.ParseMode = parseMode
 	msg.DisableWebPagePreview = true
 	msg.DisableNotification = true
-
 	_, err := b.api.Send(msg)
+	if err != nil {
+		b.logger.Warn("send silent message failed", zap.Int64("chatId", chatID), zap.Error(err))
+	}
+	return err
+}
+
+// SendDocument sends body as a file attachment with the given filename
+// (used by /rawappleapp and /rawgoogleapp).
+func (b *Bot) SendDocument(chatID int64, filename, body string) error {
+	file := tgbotapi.FileBytes{Name: filename, Bytes: []byte(body)}
+	doc := tgbotapi.NewDocument(chatID, file)
+	_, err := b.api.Send(doc)
+	if err != nil {
+		b.logger.Warn("send document failed", zap.Int64("chatId", chatID), zap.Error(err))
+	}
 	return err
 }

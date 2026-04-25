@@ -9,37 +9,37 @@ import (
 	"github.com/miti99/store-scraper-bot-go/internal/repository"
 )
 
+// /listgroup — Java ListGroupCommand. Admin-only. Lists authorized groups.
 type ListGroupCommand struct {
-	BaseCommand
+	cfg       *config.Config
 	adminRepo *repository.AdminRepository
 }
 
 func NewListGroupCommand(cfg *config.Config, adminRepo *repository.AdminRepository) *ListGroupCommand {
-	return &ListGroupCommand{
-		BaseCommand: BaseCommand{cfg: cfg},
-		adminRepo:   adminRepo,
-	}
+	return &ListGroupCommand{cfg: cfg, adminRepo: adminRepo}
 }
 
-func (c *ListGroupCommand) Execute(message *tgbotapi.Message) string {
-	if !c.requireAdmin(message) {
-		return "You are not authorized to use this command."
+func (c *ListGroupCommand) Execute(msg *tgbotapi.Message, sender Sender) {
+	if !requireAdminUser(msg.From.ID, msg.Chat.ID, c.cfg, sender) {
+		return
 	}
-
+	if len(splitArgs(msg.CommandArguments())) != 0 {
+		_ = sender.SendMessage(msg.Chat.ID, "Invalid arguments")
+		return
+	}
 	groups, err := c.adminRepo.GetAllGroups()
 	if err != nil {
-		return fmt.Sprintf("Failed to get groups: %v", err)
+		_ = sender.SendMessage(msg.Chat.ID, "Internal server error")
+		return
 	}
-
 	if len(groups) == 0 {
-		return "No groups found."
+		_ = sender.SendMessage(msg.Chat.ID, "No groups found")
+		return
 	}
-
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("*Total groups: %d*\n\n", len(groups)))
-	for i, groupID := range groups {
-		sb.WriteString(fmt.Sprintf("%d. %d\n", i+1, groupID))
+	sb.WriteString(fmt.Sprintf("<b>Authorized groups (%d):</b>\n", len(groups)))
+	for i, gid := range groups {
+		sb.WriteString(fmt.Sprintf("%d. <code>%d</code>\n", i+1, gid))
 	}
-
-	return sb.String()
+	_ = sender.SendMessage(msg.Chat.ID, sb.String())
 }

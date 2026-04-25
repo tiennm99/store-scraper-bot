@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -10,114 +11,90 @@ import (
 	"github.com/miti99/store-scraper-bot-go/internal/api/apple"
 	"github.com/miti99/store-scraper-bot-go/internal/api/google"
 	"github.com/miti99/store-scraper-bot-go/internal/config"
+	"github.com/miti99/store-scraper-bot-go/internal/model"
 	"github.com/miti99/store-scraper-bot-go/internal/repository"
 	"github.com/miti99/store-scraper-bot-go/internal/util"
 )
 
+// /checkappscore — Java CheckAppScoreCommand. Reports score + ratings count.
+// Score is rounded to 1 decimal (Java Precision.round(score, 1) parity).
 type CheckAppScoresCommand struct {
-	BaseCommand
+	cfg           *config.Config
 	adminRepo     *repository.AdminRepository
 	groupRepo     *repository.GroupRepository
 	appleScraper  *apple.AppleScraper
 	googleScraper *google.GoogleScraper
 }
 
-func NewCheckAppScoresCommand(
-	cfg *config.Config,
-	adminRepo *repository.AdminRepository,
-	groupRepo *repository.GroupRepository,
-	appleScraper *apple.AppleScraper,
-	googleScraper *google.GoogleScraper,
-) *CheckAppScoresCommand {
-	return &CheckAppScoresCommand{
-		BaseCommand:   BaseCommand{cfg: cfg},
-		adminRepo:     adminRepo,
-		groupRepo:     groupRepo,
-		appleScraper:  appleScraper,
-		googleScraper: googleScraper,
-	}
+func NewCheckAppScoresCommand(cfg *config.Config, adminRepo *repository.AdminRepository, groupRepo *repository.GroupRepository, a *apple.AppleScraper, g *google.GoogleScraper) *CheckAppScoresCommand {
+	return &CheckAppScoresCommand{cfg: cfg, adminRepo: adminRepo, groupRepo: groupRepo, appleScraper: a, googleScraper: g}
 }
 
-func (c *CheckAppScoresCommand) Execute(message *tgbotapi.Message) string {
-	if !c.requireAdmin(message) {
-		return "You are not authorized to use this command."
+func (c *CheckAppScoresCommand) Execute(msg *tgbotapi.Message, sender Sender) {
+	if !authorizeGroup(msg.Chat.ID, c.adminRepo, sender) {
+		return
+	}
+	if len(splitArgs(msg.CommandArguments())) != 0 {
+		_ = sender.SendMessage(msg.Chat.ID, "Invalid arguments")
+		return
 	}
 
-	groupID := message.Chat.ID
-	hasGroup, err := c.adminRepo.HasGroup(groupID)
-	if err != nil {
-		return fmt.Sprintf("Failed to check group: %v", err)
-	}
-	if !hasGroup {
-		return "This group is not registered."
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
-
-	group, err := c.groupRepo.Get(ctx, groupID)
+	group, err := c.groupRepo.Get(ctx, msg.Chat.ID)
 	if err != nil {
-		return fmt.Sprintf("Failed to get group: %v", err)
+		_ = sender.SendMessage(msg.Chat.ID, "Internal server error")
+		return
 	}
 
-	if len(group.AppleApps) == 0 && len(group.GoogleApps) == 0 {
-		return "No apps in this group."
-	}
-
-	var rows [][]string
-
-	// Check Apple apps
-	for _, appInfo := range group.AppleApps {
-		app, err := c.appleScraper.GetApp(appInfo.AppID, appInfo.Country)
-		if err != nil {
-			rows = append(rows, []string{
-				util.TruncateString(appInfo.AppID, 30),
-				"Apple",
-				"Error",
-				"0",
-				"0",
-			})
-			continue
-		}
-
-		rows = append(rows, []string{
-			util.TruncateString(app.Title, 30),
-			"Apple",
-			fmt.Sprintf("%.1f", app.Score),
-			fmt.Sprintf("%d", app.Reviews),
-			util.FormatNumber(app.Ratings),
-		})
-	}
-
-	// Check Google apps
-	for _, appInfo := range group.GoogleApps {
-		app, err := c.googleScraper.GetApp(appInfo.AppID, appInfo.Country)
-		if err != nil {
-			rows = append(rows, []string{
-				util.TruncateString(appInfo.AppID, 30),
-				"Google",
-				"Error",
-				"0",
-				"0",
-			})
-			continue
-		}
-
-		rows = append(rows, []string{
-			util.TruncateString(app.Title, 30),
-			"Google",
-			fmt.Sprintf("%.1f", app.Score),
-			fmt.Sprintf("%d", app.Reviews),
-			util.FormatNumber(app.Ratings),
-		})
-	}
-
-	headers := []string{"App", "Store", "Score", "Reviews", "Ratings"}
-	table := util.BuildTable(headers, rows)
+	headers := []string{"AppId", "Score", "Ratings"}
+	appleRows := c.appleScoreRows(group.AppleApps)
+	googleRows := c.googleScoreRows(group.GoogleApps)
 
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("*App Scores Report*\nGroup: %d\n\n", groupID))
-	sb.WriteString(table)
+	sb.WriteString("<b>Apple Apps</b>\n")
+	if len(appleRows) == 0 {
+		sb.WriteString("<i>(none)</i>\n")
+	} else {
+		sb.WriteString(fmt.Sprintf("<pre>%s</pre>\n", util.BuildTable(headers, appleRows)))
+	}
+	sb.WriteString("\n<b>Google Apps</b>\n")
+	if len(googleRows) == 0 {
+		sb.WriteString("<i>(none)</i>\n")
+	} else {
+		sb.WriteString(fmt.Sprintf("<pre>%s</pre>\n", util.BuildTable(headers, googleRows)))
+	}
+	_ = sender.SendMessage(msg.Chat.ID, sb.String())
+}
 
-	return sb.String()
+func (c *CheckAppScoresCommand) appleScoreRows(apps []model.AppInfo) [][]string {
+	rows := make([][]string, 0, len(apps))
+	for _, a := range apps {
+		resp, err := c.appleScraper.GetApp(a.AppID, a.Country)
+		if err != nil || resp == nil {
+			rows = append(rows, []string{a.AppID, "?", "?"})
+			continue
+		}
+		rows = append(rows, []string{a.AppID, formatScore(resp.Score), fmt.Sprintf("%d", resp.Ratings)})
+	}
+	return rows
+}
+
+func (c *CheckAppScoresCommand) googleScoreRows(apps []model.AppInfo) [][]string {
+	rows := make([][]string, 0, len(apps))
+	for _, a := range apps {
+		resp, err := c.googleScraper.GetApp(a.AppID, a.Country)
+		if err != nil || resp == nil {
+			rows = append(rows, []string{a.AppID, "?", "?"})
+			continue
+		}
+		rows = append(rows, []string{a.AppID, formatScore(resp.Score), fmt.Sprintf("%d", resp.Ratings)})
+	}
+	return rows
+}
+
+// formatScore rounds to 1 decimal place (Java Precision.round(score, 1)).
+func formatScore(score float64) string {
+	rounded := math.Round(score*10) / 10
+	return fmt.Sprintf("%.1f", rounded)
 }

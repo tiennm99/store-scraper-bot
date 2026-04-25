@@ -1,22 +1,23 @@
 package model
 
+// AdminID is the singleton document _id used by Java AdminRepository.
+const AdminID = "admin"
+
 type Admin struct {
-	Key    string  `bson:"_id,omitempty" json:"key"`
-	Groups []int64 `bson:"groups" json:"groups"`
+	AbstractModel `bson:",inline"`
+	Groups        []int64 `bson:"groups" json:"groups"`
 }
 
 func NewAdmin() *Admin {
 	return &Admin{
-		Key:    "admin",
-		Groups: make([]int64, 0),
+		AbstractModel: AbstractModel{ID: AdminID, Class: "Admin"},
+		Groups:        []int64{},
 	}
 }
 
 func (a *Admin) AddGroup(groupID int64) bool {
-	for _, g := range a.Groups {
-		if g == groupID {
-			return false // Already exists
-		}
+	if a.HasGroup(groupID) {
+		return false
 	}
 	a.Groups = append(a.Groups, groupID)
 	return true

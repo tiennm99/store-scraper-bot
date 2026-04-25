@@ -39,6 +39,11 @@ func main() {
 	appleAppRepo := repository.NewAppleAppRepository()
 	googleAppRepo := repository.NewGoogleAppRepository()
 
+	// Java parity: ensure the singleton "common/admin" document exists.
+	if err := adminRepo.Init(); err != nil {
+		cfg.Logger.Fatal("Failed to init admin singleton", zap.Error(err))
+	}
+
 	// Initialize scrapers
 	appleScraper := apple.NewAppleScraper(appleAppRepo, cfg)
 	googleScraper := google.NewGoogleScraper(googleAppRepo, cfg)

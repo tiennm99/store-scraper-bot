@@ -1,58 +1,40 @@
 package command
 
 import (
-	"encoding/json"
 	"fmt"
-	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/miti99/store-scraper-bot-go/internal/api/google"
+	"github.com/miti99/store-scraper-bot-go/internal/api/google/request"
 	"github.com/miti99/store-scraper-bot-go/internal/config"
 )
 
+// /rawgoogleapp <appId> [country=vn] — Java RawGoogleAppCommand.
+// Sends raw upstream JSON as a Telegram document.
 type RawGoogleAppCommand struct {
-	BaseCommand
-	googleScraper *google.GoogleScraper
+	cfg     *config.Config
+	scraper *google.GoogleScraper
 }
 
-func NewRawGoogleAppCommand(cfg *config.Config, googleScraper *google.GoogleScraper) *RawGoogleAppCommand {
-	return &RawGoogleAppCommand{
-		BaseCommand:   BaseCommand{cfg: cfg},
-		googleScraper: googleScraper,
-	}
+func NewRawGoogleAppCommand(cfg *config.Config, scraper *google.GoogleScraper) *RawGoogleAppCommand {
+	return &RawGoogleAppCommand{cfg: cfg, scraper: scraper}
 }
 
-func (c *RawGoogleAppCommand) Execute(message *tgbotapi.Message) string {
-	if !c.requireAdmin(message) {
-		return "You are not authorized to use this command."
+func (c *RawGoogleAppCommand) Execute(msg *tgbotapi.Message, sender Sender) {
+	args := splitArgs(msg.CommandArguments())
+	if len(args) < 1 || len(args) > 2 {
+		_ = sender.SendMessage(msg.Chat.ID, "Invalid arguments")
+		return
 	}
-
-	args := strings.Fields(message.CommandArguments())
-	if len(args) == 0 {
-		return "Usage: /rawgoogle <appId> [country]\nExample: /rawgoogle com.example.app vn"
-	}
-
 	appID := args[0]
 	country := "vn"
-	if len(args) > 1 {
+	if len(args) == 2 {
 		country = args[1]
 	}
-
-	app, err := c.googleScraper.GetApp(appID, country)
-	if err != nil {
-		return fmt.Sprintf("Failed to fetch app: %v", err)
+	raw, err := c.scraper.RawApp(request.New(appID, country))
+	if err != nil || raw == "" {
+		_ = sender.SendMessage(msg.Chat.ID, "Error when request app info")
+		return
 	}
-
-	jsonData, err := json.MarshalIndent(app, "", "  ")
-	if err != nil {
-		return fmt.Sprintf("Failed to marshal JSON: %v", err)
-	}
-
-	// Telegram has a message size limit, so we might need to truncate
-	jsonStr := string(jsonData)
-	if len(jsonStr) > 4000 {
-		jsonStr = jsonStr[:4000] + "\n...(truncated)"
-	}
-
-	return fmt.Sprintf("```json\n%s\n```", jsonStr)
+	_ = sender.SendDocument(msg.Chat.ID, fmt.Sprintf("%s.json", appID), raw)
 }
