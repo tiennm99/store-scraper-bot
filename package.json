@@ -1,0 +1,25 @@
+{
+  "name": "js-store-scraper-bot",
+  "version": "0.1.0",
+  "description": "JavaScript port of store-scraper-bot — Telegram bot for tracking Apple/Google Play app updates.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "lint": "node --check src/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "mongodb": "^6.10.0",
+    "node-cron": "^3.0.3",
+    "node-telegram-bot-api": "^0.66.0",
+    "pino": "^9.5.0",
+    "pino-pretty": "^11.3.0"
+  },
+  "license": "Apache-2.0"
+}
