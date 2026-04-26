@@ -1,4 +1,3 @@
-import { getCachedAppleApp, saveAppleApp } from '../repository/apple-app-repository.js';
 import { newAppleApp } from '../models/apple-app.js';
 
 // Mirrors Java AppStoreScraper (api/apple/AppStoreScraper.java).
@@ -12,8 +11,9 @@ export function buildAppleRequestByBundleId(appId, country) {
   return { appId, country, ratings: true };
 }
 
-export function createAppleScraper(config) {
-  const { logger, appCacheSeconds } = config;
+export function createAppleScraper(config, store) {
+  const { logger } = config;
+  const repo = store.appleApp;
 
   async function rawApp(req) {
     const res = await fetch(`${BASE_URL}/app`, {
@@ -33,14 +33,14 @@ export function createAppleScraper(config) {
   async function cache(resp) {
     if (!resp || !resp.appId) return;
     try {
-      await saveAppleApp(newAppleApp(resp.appId, resp, Date.now()));
+      await repo.save(newAppleApp(resp.appId, resp, Date.now()));
     } catch (err) {
       logger.warn({ appId: resp.appId, err: err.message }, 'failed to cache apple app');
     }
   }
 
   async function getApp(appId, country) {
-    const cached = await getCachedAppleApp(appId, appCacheSeconds);
+    const cached = await repo.getCached(appId);
     if (cached) return cached.app;
     const resp = await app(buildAppleRequestByBundleId(appId, country));
     await cache(resp);

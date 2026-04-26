@@ -1,18 +1,17 @@
-import * as groupRepo from '../../repository/group-repository.js';
 import { buildTable } from '../../util/table.js';
 import { daysBetween, formatDateInTz } from '../../util/time.js';
 import { authorizeGroup, getCommandArguments, splitArgs } from './command-utils.js';
 
 // /checkapp — Java CheckAppCommand. Reports update status per app, per store.
-export function createCheckAppCommand(config, appleScraper, googleScraper) {
+export function createCheckAppCommand(config, store, appleScraper, googleScraper) {
   return async (msg, sender) => {
-    if (!(await authorizeGroup(msg.chat.id, sender))) return;
+    if (!(await authorizeGroup(msg.chat.id, store, sender))) return;
     if (splitArgs(getCommandArguments(msg.text)).length !== 0) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;
     }
     try {
-      const group = await groupRepo.getGroup(msg.chat.id);
+      const group = await store.group.getGroup(msg.chat.id);
       const nowMs = Date.now();
       const threshold = config.numDaysWarningNotUpdated;
       const headers = ['AppId', 'Updated', 'Days', 'OK'];

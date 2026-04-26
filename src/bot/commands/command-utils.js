@@ -1,5 +1,3 @@
-import * as adminRepo from '../../repository/admin-repository.js';
-
 export function splitArgs(text) {
   if (!text) return [];
   return text.trim().split(/\s+/).filter((s) => s.length > 0);
@@ -14,9 +12,9 @@ export function getCommandArguments(text) {
   return trimmed.slice(space + 1).trim();
 }
 
-export async function authorizeGroup(chatId, sender) {
+export async function authorizeGroup(chatId, store, sender) {
   try {
-    const ok = await adminRepo.hasGroup(chatId);
+    const ok = await store.admin.hasGroup(chatId);
     if (!ok) {
       await sender.sendMessage(chatId, 'Group is not allowed to use bot');
       return false;

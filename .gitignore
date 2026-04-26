@@ -7,6 +7,12 @@ pnpm-debug.log*
 .env
 .env.local
 .env.*.local
+.env.deploy
+.dev.vars
+
+# Cloudflare Workers
+.tmp-deploy/
+.wrangler/
 
 # Editor / IDE
 # .idea/

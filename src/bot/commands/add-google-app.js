@@ -1,11 +1,10 @@
 import { buildGoogleRequest } from '../../api/google-scraper.js';
-import * as groupRepo from '../../repository/group-repository.js';
 import { authorizeGroup, getCommandArguments, splitArgs } from './command-utils.js';
 
 // /addgoogle <appId> [country=vn] — Java AddGoogleAppCommand.
-export function createAddGoogleAppCommand(googleScraper) {
+export function createAddGoogleAppCommand(store, googleScraper) {
   return async (msg, sender) => {
-    if (!(await authorizeGroup(msg.chat.id, sender))) return;
+    if (!(await authorizeGroup(msg.chat.id, store, sender))) return;
     const args = splitArgs(getCommandArguments(msg.text));
     if (args.length < 1 || args.length > 2) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
@@ -26,7 +25,7 @@ export function createAddGoogleAppCommand(googleScraper) {
     }
 
     try {
-      const added = await groupRepo.addGoogleApp(msg.chat.id, appId, country);
+      const added = await store.group.addGoogleApp(msg.chat.id, appId, country);
       if (!added) {
         await sender.sendMessage(msg.chat.id, `Google app <code>${appId}</code> is already added`);
         return;

@@ -1,8 +1,7 @@
-import * as adminRepo from '../../repository/admin-repository.js';
 import { getCommandArguments, requireAdminUser, splitArgs } from './command-utils.js';
 
 // /listgroup — Java ListGroupCommand. Admin-only.
-export function createListGroupCommand(config) {
+export function createListGroupCommand(config, store) {
   return async (msg, sender) => {
     if (!(await requireAdminUser(msg.from.id, msg.chat.id, config, sender))) return;
     if (splitArgs(getCommandArguments(msg.text)).length !== 0) {
@@ -10,7 +9,7 @@ export function createListGroupCommand(config) {
       return;
     }
     try {
-      const groups = await adminRepo.getAllGroups();
+      const groups = await store.admin.getAllGroups();
       if (groups.length === 0) {
         await sender.sendMessage(msg.chat.id, 'No groups found');
         return;

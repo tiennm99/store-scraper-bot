@@ -1,22 +1,27 @@
 import { getCollection } from './mongodb.js';
 import { isGoogleAppExpired } from '../models/google-app.js';
 
-function collection() {
-  return getCollection('google_app');
-}
+export function createGoogleAppRepository(env, appCacheSeconds) {
+  function collection() {
+    return getCollection('google_app', env);
+  }
 
-export async function getGoogleApp(appId) {
-  return collection().findOne({ _id: appId });
-}
+  async function get(appId) {
+    const c = await collection();
+    return c.findOne({ _id: appId });
+  }
 
-export async function saveGoogleApp(entry) {
-  await collection().replaceOne({ _id: entry._id }, entry, { upsert: true });
-}
+  async function save(entry) {
+    const c = await collection();
+    await c.replaceOne({ _id: entry._id }, entry, { upsert: true });
+  }
 
-export async function getCachedGoogleApp(appId, appCacheSeconds) {
-  const entry = await getGoogleApp(appId);
-  if (!entry) return null;
-  const cacheMillis = appCacheSeconds * 1000;
-  if (isGoogleAppExpired(entry, Date.now(), cacheMillis)) return null;
-  return entry;
+  async function getCached(appId) {
+    const entry = await get(appId);
+    if (!entry) return null;
+    if (isGoogleAppExpired(entry, Date.now(), appCacheSeconds * 1000)) return null;
+    return entry;
+  }
+
+  return { get, save, getCached };
 }

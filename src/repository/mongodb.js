@@ -1,30 +1,41 @@
 import { MongoClient } from 'mongodb';
 
-let client;
-let database;
-
-export async function initMongoDB(config) {
-  client = new MongoClient(config.mongoUri, {
-    serverSelectionTimeoutMS: config.mongoTimeoutMs,
-  });
-  await client.connect();
-  await client.db(config.mongoDatabase).command({ ping: 1 });
-  database = client.db(config.mongoDatabase);
-  config.logger.info(
-    { database: config.mongoDatabase, uri: config.mongoUri },
-    'Connected to MongoDB',
-  );
+// Thrown when the driver fails to reach Atlas (e.g. paused cluster, network).
+// Command handlers catch this and reply with "Internal server error".
+export class MongoUnavailable extends Error {
+  constructor(cause) {
+    super(`MongoDB unavailable: ${cause.message}`);
+    this.name = 'MongoUnavailable';
+    this.cause = cause;
+  }
 }
 
-export async function closeMongoDB() {
-  if (client) await client.close();
+// Memoized per warm Worker isolate. Module-scope is per-isolate in Workers,
+// so this caches one Promise<{client, db}> for the isolate's lifetime.
+let memoized = null;
+
+export async function getMongo(env) {
+  if (memoized) return memoized;
+  memoized = (async () => {
+    try {
+      const client = new MongoClient(env.MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 10000,
+        appName: 'js-store-scraper-bot',
+      });
+      await client.connect();
+      // db() with no arg uses the database from the URI path.
+      const db = client.db();
+      return { client, db };
+    } catch (err) {
+      memoized = null; // allow retry on next request
+      throw new MongoUnavailable(err);
+    }
+  })();
+  return memoized;
 }
 
-export function getDatabase() {
-  if (!database) throw new Error('MongoDB not initialized');
-  return database;
-}
-
-export function getCollection(name) {
-  return getDatabase().collection(name);
+export async function getCollection(name, env) {
+  const { db } = await getMongo(env);
+  return db.collection(name);
 }

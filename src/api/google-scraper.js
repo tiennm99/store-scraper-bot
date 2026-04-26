@@ -1,4 +1,3 @@
-import { getCachedGoogleApp, saveGoogleApp } from '../repository/google-app-repository.js';
 import { newGoogleApp } from '../models/google-app.js';
 
 // Mirrors Java GooglePlayScraper (api/google/GooglePlayScraper.java).
@@ -8,8 +7,9 @@ export function buildGoogleRequest(appId, country) {
   return { appId, country: country || 'vn' };
 }
 
-export function createGoogleScraper(config) {
-  const { logger, appCacheSeconds } = config;
+export function createGoogleScraper(config, store) {
+  const { logger } = config;
+  const repo = store.googleApp;
 
   async function rawApp(req) {
     const res = await fetch(`${BASE_URL}/app`, {
@@ -31,14 +31,14 @@ export function createGoogleScraper(config) {
     const id = resp.appId || fallbackId;
     if (!id) return;
     try {
-      await saveGoogleApp(newGoogleApp(id, resp, Date.now()));
+      await repo.save(newGoogleApp(id, resp, Date.now()));
     } catch (err) {
       logger.warn({ appId: id, err: err.message }, 'failed to cache google app');
     }
   }
 
   async function getApp(appId, country) {
-    const cached = await getCachedGoogleApp(appId, appCacheSeconds);
+    const cached = await repo.getCached(appId);
     if (cached) return cached.app;
     const resp = await app(buildGoogleRequest(appId, country));
     await cache(resp, appId);

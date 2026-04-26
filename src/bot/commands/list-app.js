@@ -1,17 +1,16 @@
-import * as groupRepo from '../../repository/group-repository.js';
 import { buildTable } from '../../util/table.js';
 import { authorizeGroup, getCommandArguments, splitArgs } from './command-utils.js';
 
 // /listapp — Java ListAppCommand. Two tables (Apple / Google) of tracked apps.
-export function createListAppCommand() {
+export function createListAppCommand(store) {
   return async (msg, sender) => {
-    if (!(await authorizeGroup(msg.chat.id, sender))) return;
+    if (!(await authorizeGroup(msg.chat.id, store, sender))) return;
     if (splitArgs(getCommandArguments(msg.text)).length !== 0) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;
     }
     try {
-      const group = await groupRepo.getGroup(msg.chat.id);
+      const group = await store.group.getGroup(msg.chat.id);
       const out =
         '<b>Apple Apps</b>\n' +
         formatAppTable(group.appleApps) +

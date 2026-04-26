@@ -1,8 +1,7 @@
-import * as adminRepo from '../../repository/admin-repository.js';
 import { getCommandArguments, requireAdminUser, splitArgs } from './command-utils.js';
 
 // /delgroup [groupId] — Java DeleteGroupCommand. Admin-only.
-export function createDeleteGroupCommand(config) {
+export function createDeleteGroupCommand(config, store) {
   return async (msg, sender) => {
     if (!(await requireAdminUser(msg.from.id, msg.chat.id, config, sender))) return;
     const args = splitArgs(getCommandArguments(msg.text));
@@ -20,7 +19,7 @@ export function createDeleteGroupCommand(config) {
       groupId = parsed;
     }
     try {
-      const removed = await adminRepo.removeGroup(groupId);
+      const removed = await store.admin.removeGroup(groupId);
       if (!removed) {
         await sender.sendMessage(msg.chat.id, 'Group is not added');
         return;

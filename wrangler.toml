@@ -1,0 +1,32 @@
+name = "js-store-scraper-bot"
+main = "src/index.js"
+compatibility_date = "2025-10-01"
+# nodejs_compat_v2 enables node:net + node:tls so the official `mongodb` driver
+# can open a TCP socket to Atlas. v1 vs v2 are alternatives, not additive.
+compatibility_flags = ["nodejs_compat_v2"]
+
+[vars]
+APP_CACHE_SECONDS = "600"
+NUM_DAYS_WARNING_NOT_UPDATED = "30"
+
+# Daily check job. Cloudflare cron is UTC.
+# 0 UTC = 7am Asia/Ho_Chi_Minh (UTC+7).
+[triggers]
+crons = ["0 0 * * *"]
+
+# Workers Observability — captures console.* logs and request metadata in the
+# Cloudflare dashboard. 200k events/day on the Free plan.
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+# Secrets (set via `wrangler secret put <name>`, NOT in this file):
+#   TELEGRAM_BOT_TOKEN       — bot token from @BotFather
+#   TELEGRAM_BOT_USERNAME    — bot username (without @)
+#   TELEGRAM_WEBHOOK_SECRET  — random ≥32 chars; validates the X-Telegram-Bot-Api-Secret-Token header
+#   MONGODB_URI              — full SRV string, db inferred from URI path
+#   ADMIN_IDS                — comma-separated Telegram user IDs

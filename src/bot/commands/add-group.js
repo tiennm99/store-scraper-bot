@@ -1,9 +1,7 @@
-import * as adminRepo from '../../repository/admin-repository.js';
-import * as groupRepo from '../../repository/group-repository.js';
 import { getCommandArguments, requireAdminUser, splitArgs } from './command-utils.js';
 
 // /addgroup [groupId] — Java AddGroupCommand. Admin-only.
-export function createAddGroupCommand(config) {
+export function createAddGroupCommand(config, store) {
   return async (msg, sender) => {
     if (!(await requireAdminUser(msg.from.id, msg.chat.id, config, sender))) return;
     const args = splitArgs(getCommandArguments(msg.text));
@@ -21,12 +19,12 @@ export function createAddGroupCommand(config) {
       groupId = parsed;
     }
     try {
-      const added = await adminRepo.addGroup(groupId);
+      const added = await store.admin.addGroup(groupId);
       if (!added) {
         await sender.sendMessage(msg.chat.id, 'Group is already added');
         return;
       }
-      await groupRepo.initGroup(groupId);
+      await store.group.initGroup(groupId);
       await sender.sendMessage(msg.chat.id, 'Group added successfully');
     } catch {
       await sender.sendMessage(msg.chat.id, 'Internal server error');
