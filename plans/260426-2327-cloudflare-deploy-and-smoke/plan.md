@@ -7,9 +7,12 @@ effort: 4h
 branch: main
 tags: [cloudflare-workers, deploy, smoke, atlas]
 created: 2026-04-26
-blockedBy: [260426-2015-cloudflare-worker-code-port]
+blockedBy: [260426-2015-cloudflare-worker-code-port, 260505-1425-cloudflare-kv-migration-and-deploy]
 blocks: []
+supersededBy: 260505-1425-cloudflare-kv-migration-and-deploy
 ---
+
+> **Superseded** — User chose Cloudflare KV over Atlas pre-emptively, before the hard-gate trip. Deploy work is now tracked in [`260505-1425-cloudflare-kv-migration-and-deploy`](../260505-1425-cloudflare-kv-migration-and-deploy/plan.md). This file is kept for history.
 
 # Plan B — Deploy + Smoke
 
