@@ -39,12 +39,15 @@ The daily cron reads `admin.groups[]` (single key), then iterates groups (one re
 | 03 | [Deploy + bundle gate](phase-03-deploy-and-bundle-gate.md) | pending | 0.5h |
 | 04 | [Register webhook + smoke](phase-04-register-webhook-and-smoke.md) | pending | 1.5h |
 | 05 | [Docs + cleanup](phase-05-docs-and-cleanup.md) | pending | 1h |
+| 06 | [Atlas → KV data migration](phase-06-atlas-data-migration.md) | pending | 1h |
 
 ## Critical dependencies
 
 - 01 → 02 (wrangler binding name must match what code reads from `env.STORE_KV`)
 - 02 → 03 (deploy needs the namespace ID provisioned)
+- 02 → 06 (data migration writes via `wrangler kv bulk put`, needs namespace)
 - 03 → 04 (webhook registration needs live Worker URL)
+- 06 → 04 (smoke tests need migrated data — except clean greenfield runs)
 
 ## Hard gates (now sanity checks, not pivots)
 
@@ -83,7 +86,7 @@ Two intentional divergences from Java/Mongo, both accepted:
 
 ## Out of scope
 
-- Data migration — greenfield per `plans/todo.md` Q3.
+- ~~Data migration — greenfield per `plans/todo.md` Q3.~~ Now in scope as Phase 06.
 - Tests — none exist; not adding here.
 - Custom domain — `*.workers.dev` URL is fine for Telegram webhooks.
 - Durable Objects / D1 — KV is sufficient.
