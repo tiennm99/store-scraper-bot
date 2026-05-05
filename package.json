@@ -13,9 +13,12 @@
     "deploy": "wrangler deploy && npm run register",
     "register": "node --env-file=.env.deploy scripts/register-webhook.js",
     "register:dry": "node --env-file=.env.deploy scripts/register-webhook.js --dry-run",
+    "migrate": "node --env-file=.env scripts/migrate-atlas-to-kv.js",
+    "migrate:bulk": "wrangler kv bulk put --binding STORE_KV --remote scripts/.atlas-export.json",
     "lint": "node scripts/check-secret-leaks.js"
   },
   "devDependencies": {
+    "mongodb": "^6.10.0",
     "wrangler": "^3.90.0"
   },
   "license": "Apache-2.0"

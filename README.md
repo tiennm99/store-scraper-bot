@@ -55,6 +55,22 @@ Or via Docker Compose:
 docker compose up --build
 ```
 
+## Migrating from MongoDB Atlas (one-time)
+
+If you're moving an existing bot off Atlas to Cloudflare KV:
+
+```sh
+# 1. Make sure .env has MONGODB_URI pointing at the Atlas cluster (read-only is fine).
+npm install                    # pulls the mongodb devDep needed by the migration script
+npm run migrate                # writes scripts/.atlas-export.json (admin + groups)
+# Optionally also migrate cached app entries with their TTL preserved:
+#   npm run migrate -- --include-cache
+npm run migrate:bulk           # uploads the JSON to the production KV namespace
+rm scripts/.atlas-export.json  # contains your bot state — delete after success
+```
+
+Cache collections (`apple_app`, `google_app`) are skipped by default since they auto-rebuild from upstream APIs within `APP_CACHE_SECONDS`. Re-running the migration is idempotent.
+
 ## Project Layout
 
 ```
