@@ -16,7 +16,6 @@ export function loadConfig(env) {
     'TELEGRAM_BOT_TOKEN',
     'TELEGRAM_BOT_USERNAME',
     'TELEGRAM_WEBHOOK_SECRET',
-    'MONGODB_URI',
     'ADMIN_IDS',
   ];
   for (const k of required) {

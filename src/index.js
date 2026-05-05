@@ -6,9 +6,10 @@ import { createBot } from './bot/bot.js';
 import { dispatch } from './bot/dispatch.js';
 import { runDailyCheck } from './scheduler/scheduler.js';
 
-// Builds the per-invocation context. Cheap; relies on memoized MongoClient
-// inside the store factory chain.
+// Builds the per-invocation context. Cheap — KV binding is exposed by the
+// runtime; no connection setup needed.
 function build(env) {
+  if (!env.STORE_KV) throw new Error('STORE_KV binding missing');
   const config = loadConfig(env);
   const store = createStore(env, config.appCacheSeconds);
   const appleScraper = createAppleScraper(config, store);
@@ -19,7 +20,7 @@ function build(env) {
 
 export default {
   // Telegram webhook entry. Validates the `secret_token` header, acks fast,
-  // then dispatches in `ctx.waitUntil` so Telegram doesn't retry on slow Mongo.
+  // then dispatches in `ctx.waitUntil` so Telegram doesn't retry on slow downstream calls.
   async fetch(request, env, ctx) {
     if (request.method !== 'POST') {
       return new Response('Not found', { status: 404 });

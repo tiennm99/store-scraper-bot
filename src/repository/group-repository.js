@@ -1,4 +1,4 @@
-import { getCollection } from './mongodb.js';
+import { del, getJson, putJson } from './kv.js';
 import {
   groupAddAppleApp,
   groupAddGoogleApp,
@@ -8,26 +8,24 @@ import {
   newGroup,
 } from '../models/group.js';
 
+// KV-backed per-group state. Key shape: `group:{chatId}`.
 export function createGroupRepository(env) {
-  function collection() {
-    return getCollection('group', env);
+  function key(groupId) {
+    return `group:${groupIdToKey(groupId)}`;
   }
 
   async function exists(groupId) {
-    const c = await collection();
-    const count = await c.countDocuments({ _id: groupIdToKey(groupId) });
-    return count > 0;
+    const doc = await getJson(env, key(groupId));
+    return doc !== null;
   }
 
   async function getGroup(groupId) {
-    const c = await collection();
-    const doc = await c.findOne({ _id: groupIdToKey(groupId) });
+    const doc = await getJson(env, key(groupId));
     return doc ?? newGroup(groupId);
   }
 
   async function saveGroup(group) {
-    const c = await collection();
-    await c.replaceOne({ _id: group._id }, group, { upsert: true });
+    await putJson(env, key(group._id), group);
   }
 
   async function initGroup(groupId) {
@@ -36,8 +34,7 @@ export function createGroupRepository(env) {
   }
 
   async function deleteGroup(groupId) {
-    const c = await collection();
-    await c.deleteOne({ _id: groupIdToKey(groupId) });
+    await del(env, key(groupId));
   }
 
   async function mutateAndSave(groupId, mutator) {

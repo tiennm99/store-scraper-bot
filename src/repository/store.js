@@ -4,7 +4,7 @@ import { createAppleAppRepository } from './apple-app-repository.js';
 import { createGoogleAppRepository } from './google-app-repository.js';
 
 // Single binding point for all repositories. Threads `env` once so command
-// handlers don't need to know about the Worker `env` argument.
+// handlers don't need to know about the Worker `env` argument or the KV binding.
 export function createStore(env, appCacheSeconds) {
   return {
     admin: createAdminRepository(env),

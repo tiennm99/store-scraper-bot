@@ -1,4 +1,4 @@
-import { getCollection } from './mongodb.js';
+import { getJson, putJson } from './kv.js';
 import {
   ADMIN_ID,
   adminAddGroup,
@@ -7,28 +7,22 @@ import {
   newAdmin,
 } from '../models/admin.js';
 
-// Stored in "common" collection at _id="admin" (Java parity).
+// KV-backed admin singleton — Java parity at the document level
+// (key 'admin' holds the same shape Mongo stored at _id="admin").
 export function createAdminRepository(env) {
-  function collection() {
-    return getCollection('common', env);
-  }
-
   async function init() {
-    const c = await collection();
-    const count = await c.countDocuments({ _id: ADMIN_ID });
-    if (count > 0) return;
+    const existing = await getJson(env, ADMIN_ID);
+    if (existing) return;
     await save(newAdmin());
   }
 
   async function getAdmin() {
-    const c = await collection();
-    const doc = await c.findOne({ _id: ADMIN_ID });
+    const doc = await getJson(env, ADMIN_ID);
     return doc ?? newAdmin();
   }
 
   async function save(admin) {
-    const c = await collection();
-    await c.replaceOne({ _id: ADMIN_ID }, admin, { upsert: true });
+    await putJson(env, ADMIN_ID, admin);
   }
 
   async function addGroup(groupId) {

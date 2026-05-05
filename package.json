@@ -1,7 +1,7 @@
 {
   "name": "js-store-scraper-bot",
-  "version": "0.2.0",
-  "description": "JavaScript port of store-scraper-bot — Telegram bot tracking Apple App Store + Google Play app updates. Deploys to Cloudflare Workers.",
+  "version": "0.3.0",
+  "description": "JavaScript port of store-scraper-bot — Telegram bot tracking Apple App Store + Google Play app updates. Deploys to Cloudflare Workers, backed by Cloudflare KV.",
   "type": "module",
   "private": true,
   "engines": {
@@ -14,9 +14,6 @@
     "register": "node --env-file=.env.deploy scripts/register-webhook.js",
     "register:dry": "node --env-file=.env.deploy scripts/register-webhook.js --dry-run",
     "lint": "node scripts/check-secret-leaks.js"
-  },
-  "dependencies": {
-    "mongodb": "^6.10.0"
   },
   "devDependencies": {
     "wrangler": "^3.90.0"

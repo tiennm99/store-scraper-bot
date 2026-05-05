@@ -1,26 +1,23 @@
-import { getCollection } from './mongodb.js';
-import { isGoogleAppExpired } from '../models/google-app.js';
+import { getJson, putJson } from './kv.js';
 
+// KV-backed Google app cache. Key shape: `google:{appId}`.
+// KV's expirationTtl replaces Java/Mongo's manual `(now - millis) > cacheMillis`
+// check — expired keys are deleted, so a get() returning null is the cache miss.
 export function createGoogleAppRepository(env, appCacheSeconds) {
-  function collection() {
-    return getCollection('google_app', env);
+  function key(appId) {
+    return `google:${appId}`;
   }
 
   async function get(appId) {
-    const c = await collection();
-    return c.findOne({ _id: appId });
+    return getJson(env, key(appId));
   }
 
   async function save(entry) {
-    const c = await collection();
-    await c.replaceOne({ _id: entry._id }, entry, { upsert: true });
+    await putJson(env, key(entry._id), entry, { expirationTtl: appCacheSeconds });
   }
 
   async function getCached(appId) {
-    const entry = await get(appId);
-    if (!entry) return null;
-    if (isGoogleAppExpired(entry, Date.now(), appCacheSeconds * 1000)) return null;
-    return entry;
+    return get(appId);
   }
 
   return { get, save, getCached };
