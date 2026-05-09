@@ -1,16 +1,18 @@
 # Outstanding Work
 
-Bot live on Vercel + Upstash. Java bot ready for shutdown (auth gap on raw* commands fixed in 4fe4a78).
+Bot live on Vercel + Upstash. Java bot retired.
 
 ## Backlog
 
-- [ ] Triage GitHub Dependabot alerts (1 critical + 6 moderate on default branch)
-- [ ] Tests (none exist)
-- [ ] Quarterly Upstash credential rotation reminder
-- [ ] Observability dashboard (Vercel + Upstash)
-- [ ] CI workflow (lint + bundle-size as PR check)
-- [ ] Telegram bot description / about-text via `setMyDescription`
+- [ ] Tests (no framework chosen yet — needs its own multi-phase plan)
 
-## Archive
+## Done (see git history)
 
-All migration plans + reports moved to [archive/](archive/) — Vercel + Upstash consolidation, two superseded Cloudflare attempts, java→js parity research.
+- ~~Triage Dependabot alerts~~ — overrides pinned in `package.json`; `request` SSRF risk-accepted (260510-0001)
+- ~~CI workflow~~ — `.github/workflows/ci.yml` (lint + syntax check) (260510-0001)
+- ~~Telegram bot description~~ — `npm run describe` (260510-0001)
+- ~~Operations docs~~ — README "Operations" section covers rotation + dashboards (260510-0001)
+
+## Dropped (YAGNI)
+
+- Observability dashboard — Vercel + Upstash dashboards already cover function logs, cron history, Redis metrics. Revisit only when a real ops question can't be answered by the built-ins.

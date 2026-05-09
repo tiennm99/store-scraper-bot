@@ -33,6 +33,8 @@ const COMMANDS = [
   { command: 'checkappscore', description: 'Check scores + ratings of tracked apps' },
   { command: 'rawappleapp', description: 'Dump raw Apple API JSON for an app' },
   { command: 'rawgoogleapp', description: 'Dump raw Google API JSON for an app' },
+  { command: 'settings', description: "Show this group's settings" },
+  { command: 'setdayswarning', description: 'Set warning threshold (days, 0 = default)' },
 ];
 
 async function tg(method, payload) {
