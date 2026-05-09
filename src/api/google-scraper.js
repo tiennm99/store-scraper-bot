@@ -1,29 +1,26 @@
+import gplay from 'google-play-scraper';
 import { newGoogleApp } from '../models/google-app.js';
 
 // Mirrors Java GooglePlayScraper (api/google/GooglePlayScraper.java).
-const BASE_URL = 'https://store-scraper.vercel.app/google';
+// Calls the `google-play-scraper` npm lib directly (no HTTP roundtrip).
 
 export function buildGoogleRequest(appId, country) {
   return { appId, country: country || 'vn' };
 }
 
-export function createGoogleScraper(config, store) {
+export function createGoogleScraper(config, repository) {
   const { logger } = config;
-  const repo = store.googleApp;
-
-  async function rawApp(req) {
-    const res = await fetch(`${BASE_URL}/app`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req),
-    });
-    if (!res.ok) throw new Error(`google HTTP status ${res.status}`);
-    return await res.text();
-  }
+  const repo = repository.googleApp;
 
   async function app(req) {
-    const text = await rawApp(req);
-    return JSON.parse(text);
+    return gplay.app(req);
+  }
+
+  // rawApp returns a JSON-text representation of the parsed object so the
+  // /rawgoogleapp command and any other text consumers stay parity-compatible
+  // with the previous HTTP-text response.
+  async function rawApp(req) {
+    return JSON.stringify(await app(req));
   }
 
   async function cache(resp, fallbackId) {

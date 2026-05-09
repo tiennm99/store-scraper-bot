@@ -1,4 +1,4 @@
-import { del, getJson, putJson } from './kv.js';
+import { del, getJson, putJson } from './upstash.js';
 import {
   groupAddAppleApp,
   groupAddGoogleApp,
@@ -8,24 +8,25 @@ import {
   newGroup,
 } from '../models/group.js';
 
-// KV-backed per-group state. Key shape: `group:{chatId}`.
-export function createGroupRepository(env) {
+// Upstash-backed per-group state. Logical key shape: `group:{chatId}`.
+// Physical key gets KEY_PREFIX prepended by the adapter.
+export function createGroupRepository(handle) {
   function key(groupId) {
     return `group:${groupIdToKey(groupId)}`;
   }
 
   async function exists(groupId) {
-    const doc = await getJson(env, key(groupId));
+    const doc = await getJson(handle, key(groupId));
     return doc !== null;
   }
 
   async function getGroup(groupId) {
-    const doc = await getJson(env, key(groupId));
+    const doc = await getJson(handle, key(groupId));
     return doc ?? newGroup(groupId);
   }
 
   async function saveGroup(group) {
-    await putJson(env, key(group._id), group);
+    await putJson(handle, key(group._id), group);
   }
 
   async function initGroup(groupId) {
@@ -34,7 +35,7 @@ export function createGroupRepository(env) {
   }
 
   async function deleteGroup(groupId) {
-    await del(env, key(groupId));
+    await del(handle, key(groupId));
   }
 
   async function mutateAndSave(groupId, mutator) {

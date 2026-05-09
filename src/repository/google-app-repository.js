@@ -1,19 +1,20 @@
-import { getJson, putJson } from './kv.js';
+import { getJson, putJson } from './upstash.js';
 
-// KV-backed Google app cache. Key shape: `google:{appId}`.
-// KV's expirationTtl replaces Java/Mongo's manual `(now - millis) > cacheMillis`
-// check — expired keys are deleted, so a get() returning null is the cache miss.
-export function createGoogleAppRepository(env, appCacheSeconds) {
+// Upstash-backed Google app cache. Logical key shape: `google:{appId}`.
+// Redis EX (via expirationTtl) replaces Java/Mongo's manual
+// `(now - millis) > cacheMillis` check — expired keys are deleted, so a
+// get() returning null is the cache miss.
+export function createGoogleAppRepository(handle, appCacheSeconds) {
   function key(appId) {
     return `google:${appId}`;
   }
 
   async function get(appId) {
-    return getJson(env, key(appId));
+    return getJson(handle, key(appId));
   }
 
   async function save(entry) {
-    await putJson(env, key(entry._id), entry, { expirationTtl: appCacheSeconds });
+    await putJson(handle, key(entry._id), entry, { expirationTtl: appCacheSeconds });
   }
 
   async function getCached(appId) {

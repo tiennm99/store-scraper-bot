@@ -1,36 +1,24 @@
 # Outstanding Work
 
-Quick index of what's left after the Worker code port (commit `bff1d32`).
+Quick index of active direction. CF Workers path superseded — bot now targets Vercel + Upstash.
 
 ## Active plan
 
-**[260426-2327-cloudflare-deploy-and-smoke](260426-2327-cloudflare-deploy-and-smoke/plan.md)** — operator-driven; provision Atlas, set CF secrets, run hard gates, deploy, register webhook, smoke-test, write deployment docs.
+**[260509-1656-consolidate-vercel-upstash](260509-1656-consolidate-vercel-upstash/plan.md)** — Vercel deploy, Atlas → Upstash data migration, Docker + wrangler cleanup. 7 phases, ~6h.
+
+## Superseded plans (left for history; do not execute)
+
+- [260426-2327-cloudflare-deploy-and-smoke](260426-2327-cloudflare-deploy-and-smoke/plan.md) — CF Workers deploy. Never completed; superseded by Vercel direction.
+- [260505-1425-cloudflare-kv-migration-and-deploy](260505-1425-cloudflare-kv-migration-and-deploy/plan.md) — CF KV migration. Superseded.
 
 ## Pre-flight (operator)
 
-Before running the deploy plan:
+Before running the active plan:
 
-- [ ] `npm install` (first time only — pulls `mongodb` + `wrangler`)
-- [ ] MongoDB Atlas account created (free, no credit card)
-- [ ] Cloudflare account created (free Workers plan)
-- [ ] `npx wrangler login` complete
-
-## Hard gates that can abort the deploy plan
-
-| Gate | Threshold | Pivot if fail |
-|---|---|---|
-| Bundle size (`wrangler deploy --dry-run`) | ≤ 2.7 MiB (10% headroom under 3 MiB Free cap) | Switch storage to Upstash Redis (no driver, HTTP-only) |
-| Cold-start CPU (`/__mongo-ping`) | < 40ms (10ms headroom under 50ms Free cap) | Workers Paid ($5/mo) OR pivot to Upstash |
-| Atlas auto-pause | Catchable error within 5s, not a hang | Document catch path; not abort-worthy |
-
-`mongodb` driver is the dominant risk — bundles ~4–5 MiB compressed against the 3 MiB Free cap. miti99bot has the same risk and has not yet validated the gate end-to-end on real CF Free either.
-
-## Open questions for the operator
-
-1. Atlas account: existing or first-time setup?
-2. Bot username for `setMyCommands`: same as `.env.example`?
-3. Greenfield Mongo data, or existing data to import? (Existing → schedule a separate import phase.)
-4. Custom domain or `*.workers.dev` URL? (Webhook works on either.)
+- [ ] Vercel account ready (link or create new project)
+- [ ] Upstash account ready (free Redis, signup at upstash.com or via Vercel Marketplace)
+- [ ] Read access to legacy Java bot's MongoDB Atlas (one-shot for Phase 5 migration)
+- [ ] Java bot can be paused for ~5 min during Phase 6 cutover
 
 ## Backlog (post-deploy, out of current scope)
 

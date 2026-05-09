@@ -1,4 +1,4 @@
-import { getJson, putJson } from './kv.js';
+import { getJson, putJson } from './upstash.js';
 import {
   ADMIN_ID,
   adminAddGroup,
@@ -7,22 +7,23 @@ import {
   newAdmin,
 } from '../models/admin.js';
 
-// KV-backed admin singleton — Java parity at the document level
-// (key 'admin' holds the same shape Mongo stored at _id="admin").
-export function createAdminRepository(env) {
+// Upstash-backed admin singleton — Java parity at the document level
+// (logical key 'admin' holds the same shape Mongo stored at _id="admin").
+// The physical Redis key carries the configured KEY_PREFIX (handled by adapter).
+export function createAdminRepository(handle) {
   async function init() {
-    const existing = await getJson(env, ADMIN_ID);
+    const existing = await getJson(handle, ADMIN_ID);
     if (existing) return;
     await save(newAdmin());
   }
 
   async function getAdmin() {
-    const doc = await getJson(env, ADMIN_ID);
+    const doc = await getJson(handle, ADMIN_ID);
     return doc ?? newAdmin();
   }
 
   async function save(admin) {
-    await putJson(env, ADMIN_ID, admin);
+    await putJson(handle, ADMIN_ID, admin);
   }
 
   async function addGroup(groupId) {

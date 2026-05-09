@@ -1,8 +1,8 @@
 import { buildTable, formatNumber, truncateString } from '../util/table.js';
 import { daysBetween, formatDateInTz, formatDateTimeInTz, weekdayInTz } from '../util/time.js';
 
-// One-shot daily check, invoked from the Worker `scheduled` handler. The cron
-// schedule lives in wrangler.toml ("0 0 * * *" UTC = 7am Asia/Ho_Chi_Minh).
+// One-shot daily check, invoked from api/cron.js. The cron schedule lives in
+// vercel.json ("0 0 * * *" UTC = 7am Asia/Ho_Chi_Minh).
 export async function runDailyCheck(config, store, sender, appleScraper, googleScraper) {
   const logger = config.logger;
   const now = new Date();
