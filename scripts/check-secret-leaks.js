@@ -4,8 +4,15 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const SECRETS = ['MONGODB_URI', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_WEBHOOK_SECRET', 'ADMIN_IDS'];
-const ROOTS = ['src', 'scripts'];
+const SECRETS = [
+  'TELEGRAM_BOT_TOKEN',
+  'TELEGRAM_WEBHOOK_SECRET',
+  'UPSTASH_REDIS_REST_TOKEN',
+  'KV_REST_API_TOKEN',
+  'CRON_SECRET',
+  'ADMIN_IDS',
+];
+const ROOTS = ['src', 'scripts', 'api'];
 
 function* walk(dir) {
   let entries;
