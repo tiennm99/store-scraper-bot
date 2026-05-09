@@ -13,6 +13,8 @@
     "deploy": "vercel deploy --prod && npm run register",
     "register": "node --env-file=.env.deploy scripts/register-webhook.js",
     "register:dry": "node --env-file=.env.deploy scripts/register-webhook.js --dry-run",
+    "describe": "node --env-file=.env.deploy scripts/set-bot-description.js",
+    "describe:dry": "node --env-file=.env.deploy scripts/set-bot-description.js --dry-run",
     "lint": "node scripts/check-secret-leaks.js"
   },
   "license": "Apache-2.0",
@@ -21,5 +23,10 @@
     "@vercel/functions": "^3.5.1",
     "app-store-scraper": "^0.18.0",
     "google-play-scraper": "^10.1.2"
+  },
+  "overrides": {
+    "form-data": "^2.5.4",
+    "qs": "^6.14.1",
+    "tough-cookie": "^4.1.3"
   }
 }
