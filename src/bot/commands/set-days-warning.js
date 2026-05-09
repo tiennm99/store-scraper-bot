@@ -12,9 +12,8 @@ export function createSetDaysWarningCommand(config, store) {
       return;
     }
     const arg = args[0];
-    const parsed = Number.parseInt(arg, 10);
 
-    if (arg === 'default' || parsed === 0) {
+    if (arg === 'default' || arg === '0') {
       await store.group.setSetting(msg.chat.id, 'numDaysWarningNotUpdated', undefined);
       await sender.sendMessage(
         msg.chat.id,
@@ -23,6 +22,7 @@ export function createSetDaysWarningCommand(config, store) {
       return;
     }
 
+    const parsed = Number.parseInt(arg, 10);
     if (!Number.isFinite(parsed) || String(parsed) !== arg || parsed < 1 || parsed > MAX_DAYS) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;

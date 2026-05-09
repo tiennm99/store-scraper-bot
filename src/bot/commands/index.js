@@ -22,6 +22,7 @@ import { createRawAppleAppCommand } from './raw-apple-app.js';
 import { createRawGoogleAppCommand } from './raw-google-app.js';
 import { createGetSettingsCommand } from './get-settings.js';
 import { createSetDaysWarningCommand } from './set-days-warning.js';
+import { createSetAppTtlCommand } from './set-app-ttl.js';
 
 export const COMMAND_CATALOG = [
   { name: 'info',           description: 'Show this group ID',                       adminOnly: false, build: () => createInfoCommand() },
@@ -39,6 +40,7 @@ export const COMMAND_CATALOG = [
   { name: 'rawgoogleapp',   description: 'Dump raw Google API JSON for an app',       adminOnly: false, build: (c) => createRawGoogleAppCommand(c.store, c.googleScraper) },
   { name: 'settings',       description: "Show this group's settings",                adminOnly: false, build: (c) => createGetSettingsCommand(c.config, c.store) },
   { name: 'setdayswarning', description: 'Set warning threshold (days, 0 = default)', adminOnly: false, build: (c) => createSetDaysWarningCommand(c.config, c.store) },
+  { name: 'setappttl',      description: '[admin] Set cache TTL (seconds, 0 = default)', adminOnly: true, build: (c) => createSetAppTtlCommand(c.config, c.store) },
 ];
 
 // Telegram menu projections.

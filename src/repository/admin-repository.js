@@ -2,7 +2,8 @@ import { getJson, putJson } from './upstash.js';
 
 const ADMIN_KEY = 'admin';
 
-// Upstash-backed admin singleton. Holds the authorized chat ID allowlist.
+// Upstash-backed admin singleton. Holds the authorized chat ID allowlist
+// plus optional admin-global runtime settings (e.g. cache TTL override).
 export function createAdminRepository(handle) {
   async function load() {
     return (await getJson(handle, ADMIN_KEY)) ?? { groups: [] };
@@ -38,5 +39,25 @@ export function createAdminRepository(handle) {
     return (await load()).groups;
   }
 
-  return { addGroup, removeGroup, hasGroup, getAllGroups };
+  // undefined when no override set — caller falls back to env default.
+  async function getAppCacheSeconds() {
+    return (await load()).appCacheSeconds;
+  }
+
+  // Pass `undefined` to clear the override.
+  async function setAppCacheSeconds(seconds) {
+    const admin = await load();
+    if (seconds === undefined) delete admin.appCacheSeconds;
+    else admin.appCacheSeconds = seconds;
+    await save(admin);
+  }
+
+  return {
+    addGroup,
+    removeGroup,
+    hasGroup,
+    getAllGroups,
+    getAppCacheSeconds,
+    setAppCacheSeconds,
+  };
 }
