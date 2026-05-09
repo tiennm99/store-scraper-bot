@@ -1,7 +1,11 @@
-// Telegram webhook entry. Vercel serverless function — replaces the prior
-// Cloudflare Worker `fetch` handler. Validates the X-Telegram-Bot-Api-Secret-Token
-// header, acks fast, then dispatches in waitUntil so Telegram doesn't retry on
-// slow downstream calls.
+// Telegram webhook entry. Vercel serverless function (classic Node runtime).
+// Validates the X-Telegram-Bot-Api-Secret-Token header, acks fast, then
+// dispatches in waitUntil so Telegram doesn't retry on slow downstream calls.
+//
+// Vercel's `nodejs` runtime passes IncomingMessage/ServerResponse with
+// `shouldAddHelpers: true` (so req.body is auto-parsed JSON and res has
+// .status/.send helpers). req.headers is a plain object — header keys are
+// lowercased.
 
 import { waitUntil } from '@vercel/functions';
 import { buildApp } from '../src/app-builder.js';
@@ -9,9 +13,9 @@ import { dispatch } from '../src/bot/dispatch.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return new Response('Not found', { status: 404 });
+    return res.status(404).send('Not found');
   }
 
   let app;
@@ -19,21 +23,20 @@ export default async function handler(req) {
     app = buildApp(process.env);
   } catch (err) {
     console.log(JSON.stringify({ level: 'error', msg: 'config error', err: err.message }));
-    return new Response('Server misconfigured', { status: 500 });
+    return res.status(500).send('Server misconfigured');
   }
 
-  const secret = req.headers.get('x-telegram-bot-api-secret-token');
+  const secret = req.headers['x-telegram-bot-api-secret-token'];
   if (secret !== app.config.telegramWebhookSecret) {
-    return new Response('Unauthorized', { status: 401 });
+    return res.status(401).send('Unauthorized');
   }
 
-  let update;
-  try {
-    update = await req.json();
-  } catch {
-    return new Response('Bad request', { status: 400 });
+  // req.body is auto-parsed by Vercel helpers when Content-Type is JSON.
+  // Falsy / non-object guards mirror the prior CF handler.
+  const update = req.body;
+  if (!update || typeof update !== 'object' || !update.message) {
+    return res.status(200).send('OK');
   }
-  if (!update?.message) return new Response('OK');
 
   waitUntil(
     dispatch(update.message, {
@@ -43,5 +46,5 @@ export default async function handler(req) {
       logger: app.config.logger,
     }),
   );
-  return new Response('OK');
+  return res.status(200).send('OK');
 }
