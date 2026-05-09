@@ -1,18 +1,13 @@
 import { del, getJson, putJson } from './upstash.js';
-import {
-  groupAddAppleApp,
-  groupAddGoogleApp,
-  groupIdToKey,
-  groupRemoveAppleApp,
-  groupRemoveGoogleApp,
-  newGroup,
-} from '../models/group.js';
 
 // Upstash-backed per-group state. Logical key shape: `group:{chatId}`.
-// Physical key gets KEY_PREFIX prepended by the adapter.
 export function createGroupRepository(handle) {
   function key(groupId) {
-    return `group:${groupIdToKey(groupId)}`;
+    return `group:${String(groupId)}`;
+  }
+
+  function newGroup(groupId) {
+    return { _id: String(groupId), appleApps: [], googleApps: [] };
   }
 
   async function exists(groupId) {
@@ -38,6 +33,19 @@ export function createGroupRepository(handle) {
     await del(handle, key(groupId));
   }
 
+  function addApp(list, appId, country) {
+    if (list.some((a) => a.appId === appId)) return false;
+    list.push({ appId, country });
+    return true;
+  }
+
+  function removeApp(list, appId) {
+    const i = list.findIndex((a) => a.appId === appId);
+    if (i < 0) return false;
+    list.splice(i, 1);
+    return true;
+  }
+
   async function mutateAndSave(groupId, mutator) {
     const group = await getGroup(groupId);
     if (!mutator(group)) return false;
@@ -52,12 +60,12 @@ export function createGroupRepository(handle) {
     initGroup,
     deleteGroup,
     addAppleApp: (groupId, appId, country) =>
-      mutateAndSave(groupId, (g) => groupAddAppleApp(g, appId, country)),
+      mutateAndSave(groupId, (g) => addApp(g.appleApps, appId, country)),
     removeAppleApp: (groupId, appId) =>
-      mutateAndSave(groupId, (g) => groupRemoveAppleApp(g, appId)),
+      mutateAndSave(groupId, (g) => removeApp(g.appleApps, appId)),
     addGoogleApp: (groupId, appId, country) =>
-      mutateAndSave(groupId, (g) => groupAddGoogleApp(g, appId, country)),
+      mutateAndSave(groupId, (g) => addApp(g.googleApps, appId, country)),
     removeGoogleApp: (groupId, appId) =>
-      mutateAndSave(groupId, (g) => groupRemoveGoogleApp(g, appId)),
+      mutateAndSave(groupId, (g) => removeApp(g.googleApps, appId)),
   };
 }
