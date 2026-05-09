@@ -1,17 +1,3 @@
-export function splitArgs(text) {
-  if (!text) return [];
-  return text.trim().split(/\s+/).filter((s) => s.length > 0);
-}
-
-// Strips the "/<cmd>" or "/<cmd>@botname" prefix from message.text.
-export function getCommandArguments(text) {
-  if (!text) return '';
-  const trimmed = text.trim();
-  const space = trimmed.indexOf(' ');
-  if (space < 0) return '';
-  return trimmed.slice(space + 1).trim();
-}
-
 export async function authorizeGroup(chatId, store, sender) {
   try {
     const ok = await store.admin.hasGroup(chatId);

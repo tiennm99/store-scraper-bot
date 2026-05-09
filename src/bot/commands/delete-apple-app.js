@@ -1,10 +1,9 @@
-import { authorizeGroup, getCommandArguments, splitArgs } from './command-utils.js';
+import { authorizeGroup } from './command-utils.js';
 
-// /delapple <appId> — Java DeleteAppleAppCommand.
+// /delapple <appId>
 export function createDeleteAppleAppCommand(store) {
-  return async (msg, sender) => {
+  return async (msg, sender, args) => {
     if (!(await authorizeGroup(msg.chat.id, store, sender))) return;
-    const args = splitArgs(getCommandArguments(msg.text));
     if (args.length !== 1) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;

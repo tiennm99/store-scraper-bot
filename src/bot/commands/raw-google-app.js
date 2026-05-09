@@ -1,10 +1,8 @@
 import { buildGoogleRequest } from '../../api/google-scraper.js';
-import { getCommandArguments, splitArgs } from './command-utils.js';
 
-// /rawgoogleapp <appId> [country=vn] — Java RawGoogleAppCommand.
+// /rawgoogleapp <appId> [country=vn]
 export function createRawGoogleAppCommand(googleScraper) {
-  return async (msg, sender) => {
-    const args = splitArgs(getCommandArguments(msg.text));
+  return async (msg, sender, args) => {
     if (args.length < 1 || args.length > 2) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;

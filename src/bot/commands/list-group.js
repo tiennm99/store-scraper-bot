@@ -1,10 +1,10 @@
-import { getCommandArguments, requireAdminUser, splitArgs } from './command-utils.js';
+import { requireAdminUser } from './command-utils.js';
 
-// /listgroup — Java ListGroupCommand. Admin-only.
+// /listgroup — admin-only.
 export function createListGroupCommand(config, store) {
-  return async (msg, sender) => {
+  return async (msg, sender, args) => {
     if (!(await requireAdminUser(msg.from.id, msg.chat.id, config, sender))) return;
-    if (splitArgs(getCommandArguments(msg.text)).length !== 0) {
+    if (args.length !== 0) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;
     }

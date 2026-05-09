@@ -1,11 +1,8 @@
 import { buildAppleRequestByBundleId, buildAppleRequestByTrackId } from '../../api/apple-scraper.js';
-import { getCommandArguments, splitArgs } from './command-utils.js';
 
-// /rawappleapp <id|appId> [country=vn] — Java RawAppleAppCommand.
-// Sends raw upstream JSON as a Telegram document attachment.
+// /rawappleapp <id|appId> [country=vn] — sends raw upstream JSON as a document.
 export function createRawAppleAppCommand(appleScraper) {
-  return async (msg, sender) => {
-    const args = splitArgs(getCommandArguments(msg.text));
+  return async (msg, sender, args) => {
     if (args.length < 1 || args.length > 2) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;

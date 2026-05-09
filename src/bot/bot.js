@@ -1,5 +1,4 @@
 import { createTelegramApi } from './telegram-api.js';
-import { createInfoCommand } from './commands/info.js';
 import { createAddGroupCommand } from './commands/add-group.js';
 import { createDeleteGroupCommand } from './commands/delete-group.js';
 import { createListGroupCommand } from './commands/list-group.js';
@@ -13,7 +12,6 @@ import { createCheckAppScoresCommand } from './commands/check-app-scores.js';
 import { createRawAppleAppCommand } from './commands/raw-apple-app.js';
 import { createRawGoogleAppCommand } from './commands/raw-google-app.js';
 
-// HTML parse mode for all messages (Java parity).
 const PARSE_MODE = 'HTML';
 
 export function createBot(config, store, appleScraper, googleScraper) {
@@ -51,9 +49,14 @@ export function createBot(config, store, appleScraper, googleScraper) {
     },
   };
 
-  // Java command identifiers — keep names matching exactly.
   const commands = {
-    info: createInfoCommand(),
+    info: async (msg, sender, args) => {
+      if (args.length !== 0) {
+        await sender.sendMessage(msg.chat.id, 'Invalid arguments');
+        return;
+      }
+      await sender.sendMessage(msg.chat.id, `Id của nhóm là <code>${msg.chat.id}</code>\n`);
+    },
     addgroup: createAddGroupCommand(config, store),
     delgroup: createDeleteGroupCommand(config, store),
     listgroup: createListGroupCommand(config, store),
