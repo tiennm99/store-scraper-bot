@@ -1,7 +1,5 @@
 import gplay from 'google-play-scraper';
-import { newGoogleApp } from '../models/google-app.js';
 
-// Mirrors Java GooglePlayScraper (api/google/GooglePlayScraper.java).
 // Calls the `google-play-scraper` npm lib directly (no HTTP roundtrip).
 
 export function buildGoogleRequest(appId, country) {
@@ -16,9 +14,6 @@ export function createGoogleScraper(config, repository) {
     return gplay.app(req);
   }
 
-  // rawApp returns a JSON-text representation of the parsed object so the
-  // /rawgoogleapp command and any other text consumers stay parity-compatible
-  // with the previous HTTP-text response.
   async function rawApp(req) {
     return JSON.stringify(await app(req));
   }
@@ -28,7 +23,7 @@ export function createGoogleScraper(config, repository) {
     const id = resp.appId || fallbackId;
     if (!id) return;
     try {
-      await repo.save(newGoogleApp(id, resp, Date.now()));
+      await repo.save({ _id: id, app: resp, millis: Date.now() });
     } catch (err) {
       logger.warn({ appId: id, err: err.message }, 'failed to cache google app');
     }

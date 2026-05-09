@@ -1,48 +1,44 @@
 import { getJson, putJson } from './upstash.js';
-import {
-  ADMIN_ID,
-  adminAddGroup,
-  adminHasGroup,
-  adminRemoveGroup,
-  newAdmin,
-} from '../models/admin.js';
 
-// Upstash-backed admin singleton — Java parity at the document level
-// (logical key 'admin' holds the same shape Mongo stored at _id="admin").
-// The physical Redis key carries the configured KEY_PREFIX (handled by adapter).
+const ADMIN_KEY = 'admin';
+
+// Upstash-backed admin singleton. Holds the authorized chat ID allowlist.
 export function createAdminRepository(handle) {
   async function init() {
-    const existing = await getJson(handle, ADMIN_ID);
+    const existing = await getJson(handle, ADMIN_KEY);
     if (existing) return;
-    await save(newAdmin());
+    await save({ _id: ADMIN_KEY, groups: [] });
   }
 
   async function getAdmin() {
-    const doc = await getJson(handle, ADMIN_ID);
-    return doc ?? newAdmin();
+    const doc = await getJson(handle, ADMIN_KEY);
+    return doc ?? { _id: ADMIN_KEY, groups: [] };
   }
 
   async function save(admin) {
-    await putJson(handle, ADMIN_ID, admin);
+    await putJson(handle, ADMIN_KEY, admin);
   }
 
   async function addGroup(groupId) {
     const admin = await getAdmin();
-    if (!adminAddGroup(admin, groupId)) return false;
+    if (admin.groups.includes(groupId)) return false;
+    admin.groups.push(groupId);
     await save(admin);
     return true;
   }
 
   async function removeGroup(groupId) {
     const admin = await getAdmin();
-    if (!adminRemoveGroup(admin, groupId)) return false;
+    const i = admin.groups.indexOf(groupId);
+    if (i < 0) return false;
+    admin.groups.splice(i, 1);
     await save(admin);
     return true;
   }
 
   async function hasGroup(groupId) {
     const admin = await getAdmin();
-    return adminHasGroup(admin, groupId);
+    return admin.groups.includes(groupId);
   }
 
   async function getAllGroups() {
