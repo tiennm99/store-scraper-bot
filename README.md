@@ -8,10 +8,7 @@ Runs on Vercel serverless functions with Upstash Redis as the data store.
 - Upstash Redis schema mirrors the Java/Go Mongo layout: keys `admin`,
   `group:{chatId}`, `apple:{appId}`, `google:{appId}` (last two TTL'd via Redis
   `EX`). Multi-tenant isolation via `KEY_PREFIX` (default `store-scraper-bot:`).
-- Telegram command identifiers match Java plus per-group settings:
-  `/info`, `/addgroup`, `/delgroup`, `/listgroup`, `/addapple`, `/delapple`,
-  `/addgoogle`, `/delgoogle`, `/listapp`, `/checkapp`, `/checkappscore`,
-  `/rawappleapp`, `/rawgoogleapp`, `/settings`, `/setdayswarning`.
+- Command set defined in `src/bot/commands/index.js` (single source of truth — catalog drives both dispatch and the Telegram menu). Admin-only commands are hidden from the default menu and shown only in per-admin chat scope.
 - HTML parse mode; weekend-silent daily report; configurable upstream cache (default 10 min).
 - Per-group warning threshold override via `/setdayswarning` (falls back to `NUM_DAYS_WARNING_NOT_UPDATED` env default).
 - Inlined `app-store-scraper` + `google-play-scraper` (no external scraper service).
@@ -58,7 +55,11 @@ Deploy:
 npm run deploy         # vercel deploy --prod && register webhook
 ```
 
-`npm run register` re-points the Telegram webhook at the URL in `.env.deploy:WORKER_URL`.
+`npm run register` re-points the Telegram webhook at the URL in `.env.deploy:WORKER_URL`,
+and refreshes the menu: default scope = user commands only, plus a chat-scoped menu
+(full set including admin commands) for every ID in `.env.deploy:ADMIN_IDS`. Re-run it
+whenever `src/bot/commands/index.js` changes — Telegram caches the menu until
+`setMyCommands` is called again. `npm run deploy` does this automatically.
 `npm run describe` updates the bot's profile description / about-text (run once when copy changes).
 
 ## Operations

@@ -1,18 +1,5 @@
 import { createTelegramApi } from './telegram-api.js';
-import { createAddGroupCommand } from './commands/add-group.js';
-import { createDeleteGroupCommand } from './commands/delete-group.js';
-import { createListGroupCommand } from './commands/list-group.js';
-import { createAddAppleAppCommand } from './commands/add-apple-app.js';
-import { createDeleteAppleAppCommand } from './commands/delete-apple-app.js';
-import { createAddGoogleAppCommand } from './commands/add-google-app.js';
-import { createDeleteGoogleAppCommand } from './commands/delete-google-app.js';
-import { createListAppCommand } from './commands/list-app.js';
-import { createCheckAppCommand } from './commands/check-app.js';
-import { createCheckAppScoresCommand } from './commands/check-app-scores.js';
-import { createRawAppleAppCommand } from './commands/raw-apple-app.js';
-import { createRawGoogleAppCommand } from './commands/raw-google-app.js';
-import { createGetSettingsCommand } from './commands/get-settings.js';
-import { createSetDaysWarningCommand } from './commands/set-days-warning.js';
+import { COMMAND_CATALOG } from './commands/index.js';
 
 const PARSE_MODE = 'HTML';
 
@@ -51,29 +38,10 @@ export function createBot(config, store, appleScraper, googleScraper) {
     },
   };
 
-  const commands = {
-    info: async (msg, sender, args) => {
-      if (args.length !== 0) {
-        await sender.sendMessage(msg.chat.id, 'Invalid arguments');
-        return;
-      }
-      await sender.sendMessage(msg.chat.id, `Id của nhóm là <code>${msg.chat.id}</code>\n`);
-    },
-    addgroup: createAddGroupCommand(config, store),
-    delgroup: createDeleteGroupCommand(config, store),
-    listgroup: createListGroupCommand(config, store),
-    addapple: createAddAppleAppCommand(store, appleScraper),
-    delapple: createDeleteAppleAppCommand(store),
-    addgoogle: createAddGoogleAppCommand(store, googleScraper),
-    delgoogle: createDeleteGoogleAppCommand(store),
-    listapp: createListAppCommand(store),
-    checkapp: createCheckAppCommand(config, store, appleScraper, googleScraper),
-    checkappscore: createCheckAppScoresCommand(store, appleScraper, googleScraper),
-    rawappleapp: createRawAppleAppCommand(store, appleScraper),
-    rawgoogleapp: createRawGoogleAppCommand(store, googleScraper),
-    settings: createGetSettingsCommand(config, store),
-    setdayswarning: createSetDaysWarningCommand(config, store),
-  };
+  const ctx = { config, store, appleScraper, googleScraper };
+  const commands = Object.fromEntries(
+    COMMAND_CATALOG.map(({ name, build }) => [name, build(ctx)]),
+  );
 
   return { sender, commands, api };
 }
