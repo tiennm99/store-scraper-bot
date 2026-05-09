@@ -45,12 +45,14 @@ async function main() {
   const mongoUri = process.env.MONGODB_URI;
   if (!mongoUri) exitWith('MONGODB_URI not set; check .env.deploy');
 
-  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
-  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  // Accept either Upstash naming convention (vanilla signup) or Vercel
+  // Marketplace integration names — same as the runtime adapter.
+  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
+  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
   const dryRun = process.argv.includes('--dry-run');
   if (!dryRun) {
-    if (!upstashUrl) exitWith('UPSTASH_REDIS_REST_URL not set; check .env.deploy');
-    if (!upstashToken) exitWith('UPSTASH_REDIS_REST_TOKEN not set; check .env.deploy');
+    if (!upstashUrl) exitWith('UPSTASH_REDIS_REST_URL (or KV_REST_API_URL) not set; check .env.deploy');
+    if (!upstashToken) exitWith('UPSTASH_REDIS_REST_TOKEN (or KV_REST_API_TOKEN) not set; check .env.deploy');
   }
 
   const includeCache = process.argv.includes('--include-cache');

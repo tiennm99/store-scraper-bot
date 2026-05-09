@@ -29,13 +29,18 @@ export class UpstashUnavailable extends Error {
 // Build a handle bundling the Redis client and the key prefix together.
 // The handle is what callers pass into getJson/putJson/del/scan — it stays
 // opaque so repositories never need to know about prefixing themselves.
+//
+// Accepts both env var naming conventions:
+//   - UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN (vanilla Upstash signup)
+//   - KV_REST_API_URL / KV_REST_API_TOKEN (Vercel Marketplace integration)
+// so the operator doesn't have to duplicate vars when the bot shares an
+// Upstash DB provisioned via Vercel.
 export function createUpstashClient(env) {
-  if (!env?.UPSTASH_REDIS_REST_URL) throw new UpstashUnavailable('UPSTASH_REDIS_REST_URL');
-  if (!env?.UPSTASH_REDIS_REST_TOKEN) throw new UpstashUnavailable('UPSTASH_REDIS_REST_TOKEN');
-  const client = new Redis({
-    url: env.UPSTASH_REDIS_REST_URL,
-    token: env.UPSTASH_REDIS_REST_TOKEN,
-  });
+  const url = env?.UPSTASH_REDIS_REST_URL ?? env?.KV_REST_API_URL;
+  const token = env?.UPSTASH_REDIS_REST_TOKEN ?? env?.KV_REST_API_TOKEN;
+  if (!url) throw new UpstashUnavailable('UPSTASH_REDIS_REST_URL or KV_REST_API_URL');
+  if (!token) throw new UpstashUnavailable('UPSTASH_REDIS_REST_TOKEN or KV_REST_API_TOKEN');
+  const client = new Redis({ url, token });
   const prefix = env.KEY_PREFIX ?? DEFAULT_KEY_PREFIX;
   return { client, prefix };
 }
