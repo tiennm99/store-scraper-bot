@@ -1,10 +1,10 @@
 # Outstanding Work
 
-Quick index of active direction. CF Workers path superseded — bot now targets Vercel + Upstash.
+Quick index of active direction. CF Workers path superseded — bot runs on Vercel + Upstash.
 
-## Active plan
+## Completed plans
 
-**[260509-1656-consolidate-vercel-upstash](260509-1656-consolidate-vercel-upstash/plan.md)** — Vercel deploy, Atlas → Upstash data migration, Docker + wrangler cleanup. 7 phases, ~6h.
+**[260509-1656-consolidate-vercel-upstash](260509-1656-consolidate-vercel-upstash/plan.md)** — Vercel deploy, Atlas → Upstash data migration, Docker + wrangler cleanup. 7 phases done.
 
 ## Superseded plans (left for history; do not execute)
 

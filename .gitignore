@@ -10,13 +10,6 @@ pnpm-debug.log*
 .env.deploy
 .dev.vars
 
-# Cloudflare Workers
-.tmp-deploy/
-.wrangler/
-
-# Atlas → KV migration intermediate (contains exported bot state)
-scripts/.atlas-export.json
-
 # Editor / IDE
 # .idea/
 # .vscode/
