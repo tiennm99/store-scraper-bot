@@ -10,40 +10,35 @@ export function buildAppleRequestByBundleId(appId, country) {
   return { appId, country, ratings: true };
 }
 
-export function createAppleScraper(config, repository) {
+export function createAppleScraper(config, cache) {
   const { logger } = config;
-  const repo = repository.appleApp;
-
-  async function app(req) {
-    return store.app(req);
-  }
 
   async function rawApp(req) {
-    return JSON.stringify(await app(req));
+    return JSON.stringify(await store.app(req));
   }
 
-  async function cache(resp) {
+  async function saveCache(resp) {
     if (!resp || !resp.appId) return;
     try {
-      await repo.save({ _id: resp.appId, app: resp, millis: Date.now() });
+      await cache.save(resp.appId, resp);
     } catch (err) {
       logger.warn({ appId: resp.appId, err: err.message }, 'failed to cache apple app');
     }
   }
 
   async function getApp(appId, country) {
-    const cached = await repo.getCached(appId);
+    const cached = await cache.getCached(appId);
     if (cached) return cached.app;
-    const resp = await app(buildAppleRequestByBundleId(appId, country));
-    await cache(resp);
+    const resp = await store.app(buildAppleRequestByBundleId(appId, country));
+    await saveCache(resp);
     return resp;
   }
 
   async function fetchAndCache(req) {
-    const resp = await app(req);
-    await cache(resp);
+    const resp = await store.app(req);
+    await saveCache(resp);
     return resp;
   }
 
-  return { rawApp, app, getApp, fetchAndCache };
+  return { rawApp, getApp, fetchAndCache };
 }

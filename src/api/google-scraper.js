@@ -6,42 +6,37 @@ export function buildGoogleRequest(appId, country) {
   return { appId, country: country || 'vn' };
 }
 
-export function createGoogleScraper(config, repository) {
+export function createGoogleScraper(config, cache) {
   const { logger } = config;
-  const repo = repository.googleApp;
-
-  async function app(req) {
-    return gplay.app(req);
-  }
 
   async function rawApp(req) {
-    return JSON.stringify(await app(req));
+    return JSON.stringify(await gplay.app(req));
   }
 
-  async function cache(resp, fallbackId) {
+  async function saveCache(resp, fallbackId) {
     if (!resp) return;
     const id = resp.appId || fallbackId;
     if (!id) return;
     try {
-      await repo.save({ _id: id, app: resp, millis: Date.now() });
+      await cache.save(id, resp);
     } catch (err) {
       logger.warn({ appId: id, err: err.message }, 'failed to cache google app');
     }
   }
 
   async function getApp(appId, country) {
-    const cached = await repo.getCached(appId);
+    const cached = await cache.getCached(appId);
     if (cached) return cached.app;
-    const resp = await app(buildGoogleRequest(appId, country));
-    await cache(resp, appId);
+    const resp = await gplay.app(buildGoogleRequest(appId, country));
+    await saveCache(resp, appId);
     return resp;
   }
 
   async function fetchAndCache(req) {
-    const resp = await app(req);
-    await cache(resp, req.appId);
+    const resp = await gplay.app(req);
+    await saveCache(resp, req.appId);
     return resp;
   }
 
-  return { rawApp, app, getApp, fetchAndCache };
+  return { rawApp, getApp, fetchAndCache };
 }

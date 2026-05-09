@@ -6,8 +6,7 @@ import { loadConfig } from './config.js';
 import { createUpstashClient } from './repository/upstash.js';
 import { createAdminRepository } from './repository/admin-repository.js';
 import { createGroupRepository } from './repository/group-repository.js';
-import { createAppleAppRepository } from './repository/apple-app-repository.js';
-import { createGoogleAppRepository } from './repository/google-app-repository.js';
+import { createAppCacheRepository } from './repository/app-cache-repository.js';
 import { createAppleScraper } from './api/apple-scraper.js';
 import { createGoogleScraper } from './api/google-scraper.js';
 import { createBot } from './bot/bot.js';
@@ -18,11 +17,11 @@ export function buildApp(env) {
   const store = {
     admin: createAdminRepository(handle),
     group: createGroupRepository(handle),
-    appleApp: createAppleAppRepository(handle, config.appCacheSeconds),
-    googleApp: createGoogleAppRepository(handle, config.appCacheSeconds),
   };
-  const appleScraper = createAppleScraper(config, store);
-  const googleScraper = createGoogleScraper(config, store);
+  const appleCache = createAppCacheRepository(handle, 'apple', config.appCacheSeconds);
+  const googleCache = createAppCacheRepository(handle, 'google', config.appCacheSeconds);
+  const appleScraper = createAppleScraper(config, appleCache);
+  const googleScraper = createGoogleScraper(config, googleCache);
   const { sender, commands } = createBot(config, store, appleScraper, googleScraper);
   return { config, store, appleScraper, googleScraper, sender, commands };
 }
