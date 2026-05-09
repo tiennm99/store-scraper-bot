@@ -1,13 +1,5 @@
 import { createLogger } from './logger.js';
-
-function parseAdminIds(raw) {
-  return raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0)
-    .map((s) => Number.parseInt(s, 10))
-    .filter((n) => Number.isFinite(n));
-}
+import { parseAdminIds } from './util/parse-admin-ids.js';
 
 // Builds config from a plain env dictionary (Vercel's `process.env` or any
 // dict-like). Called once per webhook / cron invocation; cheap.
