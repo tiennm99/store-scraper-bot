@@ -2,14 +2,8 @@ plans/
 docs/
 *.md
 LICENSE
-Dockerfile
-docker-compose.yml
-docker-compose.dev.yml
-wrangler.toml
 .env*
 scripts/check-secret-leaks.js
-scripts/migrate-atlas-to-upstash.js
-scripts/migrate-atlas-to-kv.js
 scripts/register-webhook.js
 .git
 .github

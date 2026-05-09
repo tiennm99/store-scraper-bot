@@ -1,7 +1,7 @@
 ---
 phase: 7
 title: "Cleanup wrangler + docker + docs"
-status: pending
+status: completed
 priority: P2
 effort: 30 min
 dependencies: [6]

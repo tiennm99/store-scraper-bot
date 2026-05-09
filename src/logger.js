@@ -1,5 +1,4 @@
-// Worker-friendly structured logger. Cloudflare Observability indexes JSON
-// console output, so we emit one JSON record per call.
+// Structured JSON logger — one JSON record per call for log aggregators.
 export function createLogger() {
   function log(level, payloadOrMsg, maybeMsg) {
     const isObj = payloadOrMsg !== null && typeof payloadOrMsg === 'object';

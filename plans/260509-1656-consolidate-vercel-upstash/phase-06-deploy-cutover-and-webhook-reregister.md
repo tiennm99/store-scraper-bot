@@ -1,7 +1,7 @@
 ---
 phase: 6
 title: "Deploy + cutover + webhook re-register"
-status: pending
+status: completed
 priority: P1
 effort: 45 min
 dependencies: [4, 5]

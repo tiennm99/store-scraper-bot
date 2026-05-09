@@ -13,13 +13,7 @@
     "deploy": "vercel deploy --prod && npm run register",
     "register": "node --env-file=.env.deploy scripts/register-webhook.js",
     "register:dry": "node --env-file=.env.deploy scripts/register-webhook.js --dry-run",
-    "migrate": "node --env-file=.env.deploy scripts/migrate-atlas-to-upstash.js",
-    "migrate:dry": "node --env-file=.env.deploy scripts/migrate-atlas-to-upstash.js --dry-run",
     "lint": "node scripts/check-secret-leaks.js"
-  },
-  "devDependencies": {
-    "mongodb": "^6.10.0",
-    "wrangler": "^3.90.0"
   },
   "license": "Apache-2.0",
   "dependencies": {

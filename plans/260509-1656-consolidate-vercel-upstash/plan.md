@@ -1,7 +1,7 @@
 ---
 title: "Consolidate on Vercel + Upstash Redis"
 description: "Deploy bot to Vercel (no Cloudflare). Migrate live state from legacy java-store-scraper-bot MongoDB Atlas → Upstash Redis. Inline scraper libs (drop store-scraper.vercel.app fetch). Delete Docker artifacts. Single repo, single vendor, free tier."
-status: in-progress
+status: completed
 priority: P1
 effort: 6h
 branch: main
@@ -35,8 +35,8 @@ Storage research: [`reports/researcher-260509-1656-upstash-vs-atlas.md`](../repo
 | 03 | [Inline scraper modules](phase-03-inline-scraper-modules.md) | 45 min | completed |
 | 04 | [HTTP layer (webhook + cron)](phase-04-http-layer-webhook-and-cron.md) | 1h | completed |
 | 05 | [Data migration MongoDB Atlas → Upstash](phase-05-data-migration-atlas-to-upstash.md) | 30 min | completed |
-| 06 | [Deploy + cutover + webhook register](phase-06-deploy-cutover-and-webhook-reregister.md) | 45 min | pending (operator) |
-| 07 | [Cleanup wrangler + docker + docs](phase-07-cleanup-wrangler-and-docs.md) | 30 min | pending (post-deploy) |
+| 06 | [Deploy + cutover + webhook register](phase-06-deploy-cutover-and-webhook-reregister.md) | 45 min | completed |
+| 07 | [Cleanup wrangler + docker + docs](phase-07-cleanup-wrangler-and-docs.md) | 30 min | completed |
 
 ## Key Constraints
 

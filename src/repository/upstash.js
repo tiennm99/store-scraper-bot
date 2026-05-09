@@ -1,6 +1,6 @@
-// Upstash Redis adapter — replaces the prior Cloudflare KV wrapper.
+// Upstash Redis adapter.
 //
-// Logical key namespace (unchanged from KV layer):
+// Logical key namespace:
 //   admin                       singleton
 //   group:{chatId}              per-group state
 //   apple:{appId}               cached Apple response (with TTL)
