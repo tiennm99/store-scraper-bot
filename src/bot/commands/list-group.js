@@ -8,17 +8,13 @@ export function createListGroupCommand(config, store) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;
     }
-    try {
-      const groups = await store.admin.getAllGroups();
-      if (groups.length === 0) {
-        await sender.sendMessage(msg.chat.id, 'No groups found');
-        return;
-      }
-      const lines = [`<b>Authorized groups (${groups.length}):</b>`];
-      groups.forEach((gid, i) => lines.push(`${i + 1}. <code>${gid}</code>`));
-      await sender.sendMessage(msg.chat.id, lines.join('\n') + '\n');
-    } catch {
-      await sender.sendMessage(msg.chat.id, 'Internal server error');
+    const groups = await store.admin.getAllGroups();
+    if (groups.length === 0) {
+      await sender.sendMessage(msg.chat.id, 'No groups found');
+      return;
     }
+    const lines = [`<b>Authorized groups (${groups.length}):</b>`];
+    groups.forEach((gid, i) => lines.push(`${i + 1}. <code>${gid}</code>`));
+    await sender.sendMessage(msg.chat.id, lines.join('\n') + '\n');
   };
 }

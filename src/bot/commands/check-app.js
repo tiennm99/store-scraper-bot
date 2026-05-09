@@ -10,24 +10,20 @@ export function createCheckAppCommand(config, store, appleScraper, googleScraper
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;
     }
-    try {
-      const group = await store.group.getGroup(msg.chat.id);
-      const nowMs = Date.now();
-      const threshold = config.numDaysWarningNotUpdated;
-      const headers = ['AppId', 'Updated', 'Days', 'OK'];
+    const group = await store.group.getGroup(msg.chat.id);
+    const nowMs = Date.now();
+    const threshold = config.numDaysWarningNotUpdated;
+    const headers = ['AppId', 'Updated', 'Days', 'OK'];
 
-      const appleRows = await appleRowsFor(group.appleApps, appleScraper, nowMs, threshold, config.timezone);
-      const googleRows = await googleRowsFor(group.googleApps, googleScraper, nowMs, threshold, config.timezone);
+    const appleRows = await appleRowsFor(group.appleApps, appleScraper, nowMs, threshold, config.timezone);
+    const googleRows = await googleRowsFor(group.googleApps, googleScraper, nowMs, threshold, config.timezone);
 
-      const out =
-        '<b>Apple Apps</b>\n' +
-        renderTable(appleRows, headers) +
-        '\n<b>Google Apps</b>\n' +
-        renderTable(googleRows, headers);
-      await sender.sendMessage(msg.chat.id, out);
-    } catch {
-      await sender.sendMessage(msg.chat.id, 'Internal server error');
-    }
+    const out =
+      '<b>Apple Apps</b>\n' +
+      renderTable(appleRows, headers) +
+      '\n<b>Google Apps</b>\n' +
+      renderTable(googleRows, headers);
+    await sender.sendMessage(msg.chat.id, out);
   };
 }
 

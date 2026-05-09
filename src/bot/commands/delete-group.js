@@ -17,15 +17,11 @@ export function createDeleteGroupCommand(config, store) {
       }
       groupId = parsed;
     }
-    try {
-      const removed = await store.admin.removeGroup(groupId);
-      if (!removed) {
-        await sender.sendMessage(msg.chat.id, 'Group is not added');
-        return;
-      }
-      await sender.sendMessage(msg.chat.id, 'Group deleted successfully');
-    } catch {
-      await sender.sendMessage(msg.chat.id, 'Internal server error');
+    const removed = await store.admin.removeGroup(groupId);
+    if (!removed) {
+      await sender.sendMessage(msg.chat.id, 'Group is not added');
+      return;
     }
+    await sender.sendMessage(msg.chat.id, 'Group deleted successfully');
   };
 }
