@@ -60,6 +60,10 @@ async function googleRowsFor(apps, scraper, nowMs, threshold, timezone) {
         continue;
       }
       const updatedMs = Number(resp.updated);
+      if (!Number.isFinite(updatedMs)) {
+        rows.push([a.appId, '?', '?', mark(false)]);
+        continue;
+      }
       const days = daysBetween(updatedMs, nowMs);
       rows.push([a.appId, formatDateInTz(new Date(updatedMs), timezone), String(days), mark(days <= threshold)]);
     } catch {

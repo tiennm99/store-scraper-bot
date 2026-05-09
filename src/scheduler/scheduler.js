@@ -68,6 +68,7 @@ async function checkGroup(groupId, silent, now, config, store, sender, appleScra
       const app = await googleScraper.getApp(info.appId, info.country);
       if (!app) continue;
       const updatedMs = Number(app.updated);
+      if (!Number.isFinite(updatedMs)) continue;
       const days = daysBetween(updatedMs, now.getTime());
       if (days > threshold) {
         stale.push({
