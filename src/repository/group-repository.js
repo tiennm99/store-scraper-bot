@@ -3,34 +3,35 @@ import { del, getJson, putJson } from './upstash.js';
 // Upstash-backed per-group state. Logical key shape: `group:{chatId}`.
 export function createGroupRepository(handle) {
   function key(groupId) {
-    return `group:${String(groupId)}`;
+    return `group:${groupId}`;
   }
 
-  function newGroup(groupId) {
-    return { _id: String(groupId), appleApps: [], googleApps: [] };
-  }
-
-  async function exists(groupId) {
-    const doc = await getJson(handle, key(groupId));
-    return doc !== null;
+  function emptyGroup() {
+    return { appleApps: [], googleApps: [] };
   }
 
   async function getGroup(groupId) {
-    const doc = await getJson(handle, key(groupId));
-    return doc ?? newGroup(groupId);
+    return (await getJson(handle, key(groupId))) ?? emptyGroup();
   }
 
-  async function saveGroup(group) {
-    await putJson(handle, key(group._id), group);
+  async function save(groupId, group) {
+    await putJson(handle, key(groupId), group);
   }
 
   async function initGroup(groupId) {
-    if (await exists(groupId)) return;
-    await saveGroup(newGroup(groupId));
+    if (await getJson(handle, key(groupId))) return;
+    await save(groupId, emptyGroup());
   }
 
   async function deleteGroup(groupId) {
     await del(handle, key(groupId));
+  }
+
+  async function mutateAndSave(groupId, mutator) {
+    const group = await getGroup(groupId);
+    if (!mutator(group)) return false;
+    await save(groupId, group);
+    return true;
   }
 
   function addApp(list, appId, country) {
@@ -46,17 +47,8 @@ export function createGroupRepository(handle) {
     return true;
   }
 
-  async function mutateAndSave(groupId, mutator) {
-    const group = await getGroup(groupId);
-    if (!mutator(group)) return false;
-    await saveGroup(group);
-    return true;
-  }
-
   return {
-    exists,
     getGroup,
-    saveGroup,
     initGroup,
     deleteGroup,
     addAppleApp: (groupId, appId, country) =>

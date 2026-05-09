@@ -4,7 +4,10 @@
 
 import { loadConfig } from './config.js';
 import { createUpstashClient } from './repository/upstash.js';
-import { createStore } from './repository/store.js';
+import { createAdminRepository } from './repository/admin-repository.js';
+import { createGroupRepository } from './repository/group-repository.js';
+import { createAppleAppRepository } from './repository/apple-app-repository.js';
+import { createGoogleAppRepository } from './repository/google-app-repository.js';
 import { createAppleScraper } from './api/apple-scraper.js';
 import { createGoogleScraper } from './api/google-scraper.js';
 import { createBot } from './bot/bot.js';
@@ -12,7 +15,12 @@ import { createBot } from './bot/bot.js';
 export function buildApp(env) {
   const config = loadConfig(env);
   const handle = createUpstashClient(env);
-  const store = createStore(handle, config.appCacheSeconds);
+  const store = {
+    admin: createAdminRepository(handle),
+    group: createGroupRepository(handle),
+    appleApp: createAppleAppRepository(handle, config.appCacheSeconds),
+    googleApp: createGoogleAppRepository(handle, config.appCacheSeconds),
+  };
   const appleScraper = createAppleScraper(config, store);
   const googleScraper = createGoogleScraper(config, store);
   const { sender, commands } = createBot(config, store, appleScraper, googleScraper);

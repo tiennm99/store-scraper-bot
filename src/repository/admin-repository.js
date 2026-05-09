@@ -4,15 +4,8 @@ const ADMIN_KEY = 'admin';
 
 // Upstash-backed admin singleton. Holds the authorized chat ID allowlist.
 export function createAdminRepository(handle) {
-  async function init() {
-    const existing = await getJson(handle, ADMIN_KEY);
-    if (existing) return;
-    await save({ _id: ADMIN_KEY, groups: [] });
-  }
-
-  async function getAdmin() {
-    const doc = await getJson(handle, ADMIN_KEY);
-    return doc ?? { _id: ADMIN_KEY, groups: [] };
+  async function load() {
+    return (await getJson(handle, ADMIN_KEY)) ?? { groups: [] };
   }
 
   async function save(admin) {
@@ -20,7 +13,7 @@ export function createAdminRepository(handle) {
   }
 
   async function addGroup(groupId) {
-    const admin = await getAdmin();
+    const admin = await load();
     if (admin.groups.includes(groupId)) return false;
     admin.groups.push(groupId);
     await save(admin);
@@ -28,7 +21,7 @@ export function createAdminRepository(handle) {
   }
 
   async function removeGroup(groupId) {
-    const admin = await getAdmin();
+    const admin = await load();
     const i = admin.groups.indexOf(groupId);
     if (i < 0) return false;
     admin.groups.splice(i, 1);
@@ -37,14 +30,13 @@ export function createAdminRepository(handle) {
   }
 
   async function hasGroup(groupId) {
-    const admin = await getAdmin();
+    const admin = await load();
     return admin.groups.includes(groupId);
   }
 
   async function getAllGroups() {
-    const admin = await getAdmin();
-    return admin.groups;
+    return (await load()).groups;
   }
 
-  return { init, getAdmin, save, addGroup, removeGroup, hasGroup, getAllGroups };
+  return { addGroup, removeGroup, hasGroup, getAllGroups };
 }

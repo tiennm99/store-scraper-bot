@@ -8,38 +8,23 @@
 //
 // Multi-tenancy: every physical Redis key carries a configurable prefix
 // (env.KEY_PREFIX, default 'store-scraper-bot:') so this bot can safely share
-// an Upstash database with other Vercel projects without collision. Repository
-// callers pass logical keys; the adapter applies the prefix transparently.
+// an Upstash database with other Vercel projects without collision.
 //
-// 60s minimum TTL clamp is preserved from the KV days for parity safety,
-// even though Redis would accept lower values.
+// 60s minimum TTL clamp is preserved from the KV days for parity safety.
 
 import { Redis } from '@upstash/redis';
 
 const MIN_TTL_SECONDS = 60;
 const DEFAULT_KEY_PREFIX = 'store-scraper-bot:';
 
-export class UpstashUnavailable extends Error {
-  constructor(missing) {
-    super(`Upstash env var missing: ${missing}`);
-    this.name = 'UpstashUnavailable';
-  }
-}
-
-// Build a handle bundling the Redis client and the key prefix together.
-// The handle is what callers pass into getJson/putJson/del/scan — it stays
-// opaque so repositories never need to know about prefixing themselves.
-//
 // Accepts both env var naming conventions:
-//   - UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN (vanilla Upstash signup)
-//   - KV_REST_API_URL / KV_REST_API_TOKEN (Vercel Marketplace integration)
-// so the operator doesn't have to duplicate vars when the bot shares an
-// Upstash DB provisioned via Vercel.
+//   UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN (vanilla Upstash signup)
+//   KV_REST_API_URL / KV_REST_API_TOKEN (Vercel Marketplace integration)
 export function createUpstashClient(env) {
   const url = env?.UPSTASH_REDIS_REST_URL ?? env?.KV_REST_API_URL;
   const token = env?.UPSTASH_REDIS_REST_TOKEN ?? env?.KV_REST_API_TOKEN;
-  if (!url) throw new UpstashUnavailable('UPSTASH_REDIS_REST_URL or KV_REST_API_URL');
-  if (!token) throw new UpstashUnavailable('UPSTASH_REDIS_REST_TOKEN or KV_REST_API_TOKEN');
+  if (!url) throw new Error('UPSTASH_REDIS_REST_URL or KV_REST_API_URL is required');
+  if (!token) throw new Error('UPSTASH_REDIS_REST_TOKEN or KV_REST_API_TOKEN is required');
   const client = new Redis({ url, token });
   const prefix = env.KEY_PREFIX ?? DEFAULT_KEY_PREFIX;
   return { client, prefix };
@@ -49,14 +34,10 @@ function physicalKey(handle, key) {
   return `${handle.prefix}${key}`;
 }
 
-// Upstash auto-deserializes values that look like JSON. We always store via
-// JSON.stringify, so reads can return the parsed object directly. Returns null
-// on missing key, matching the prior KV semantics.
 export async function getJson(handle, key) {
   const value = await handle.client.get(physicalKey(handle, key));
   if (value == null) return null;
-  // Some SDK versions return strings, others return parsed objects depending
-  // on content. Normalize: if string, parse; if object, pass through.
+  // Some SDK versions return strings, others return parsed objects.
   return typeof value === 'string' ? JSON.parse(value) : value;
 }
 
@@ -69,22 +50,4 @@ export async function putJson(handle, key, value, opts = {}) {
 
 export async function del(handle, key) {
   await handle.client.del(physicalKey(handle, key));
-}
-
-// Suffix-based scan. Caller passes a logical match like 'group:*'; adapter
-// prepends the key prefix so only this bot's keys are returned.
-// Returns the list of *logical* keys (prefix stripped) so callers stay
-// prefix-unaware.
-export async function scan(handle, matchSuffix) {
-  const match = `${handle.prefix}${matchSuffix}`;
-  const out = [];
-  let cursor = '0';
-  do {
-    const [next, batch] = await handle.client.scan(cursor, { match, count: 100 });
-    cursor = next;
-    for (const physical of batch) {
-      out.push(physical.startsWith(handle.prefix) ? physical.slice(handle.prefix.length) : physical);
-    }
-  } while (cursor !== '0');
-  return out;
 }
