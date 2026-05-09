@@ -18,8 +18,13 @@ export function buildApp(env) {
     admin: createAdminRepository(handle),
     group: createGroupRepository(handle),
   };
-  const appleCache = createAppCacheRepository(handle, 'apple', config.appCacheSeconds);
-  const googleCache = createAppCacheRepository(handle, 'google', config.appCacheSeconds);
+  // Resolves to admin override if set, else env default. Per-repo memoization
+  // means each cache repo reads the admin doc at most once per request, and
+  // only on the first cache write — read-only paths cost zero extra Redis ops.
+  const ttlGetter = async () =>
+    (await store.admin.getAppCacheSeconds()) ?? config.appCacheSeconds;
+  const appleCache = createAppCacheRepository(handle, 'apple', ttlGetter);
+  const googleCache = createAppCacheRepository(handle, 'google', ttlGetter);
   const appleScraper = createAppleScraper(config, appleCache);
   const googleScraper = createGoogleScraper(config, googleCache);
   const { sender, commands } = createBot(config, store, appleScraper, googleScraper);
