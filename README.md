@@ -36,13 +36,10 @@ Vercel env vars:
 | `UPSTASH_REDIS_REST_TOKEN` | Upstash REST token (or `KV_REST_API_TOKEN` fallback) |
 | `KEY_PREFIX` | Namespace for all Redis keys (default `store-scraper-bot:`) |
 | `CRON_SECRET` | ≥32 chars random; required by Vercel Cron handler |
-| `ENV` | `DEVELOPMENT` or `PRODUCTION` |
-| `SOURCE_COMMIT` | Optional; shown on startup |
 | `APP_CACHE_SECONDS` | Cache TTL for upstream API responses (default 600) |
-| `NUM_DAYS_WARNING_NOT_UPDATED` | Threshold for daily warning (default 30) |
-| `SCHEDULE_CHECK_APP_TIME` | Cron expression in Vietnam timezone (default `0 7 * * *`) |
+| `NUM_DAYS_WARNING_NOT_UPDATED` | Default warning threshold in days (default 30; per-group override via `/setdayswarning`) |
 
-Operator-only `.env.deploy` (used by `npm run register`) — see `.env.deploy.example`.
+Operator-only `.env.deploy` (used by `npm run register` + `npm run describe`) — see `.env.deploy.example`.
 
 ## Run
 
