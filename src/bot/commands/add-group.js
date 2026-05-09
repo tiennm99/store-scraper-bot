@@ -1,10 +1,9 @@
-import { getCommandArguments, requireAdminUser, splitArgs } from './command-utils.js';
+import { requireAdminUser } from './command-utils.js';
 
-// /addgroup [groupId] — Java AddGroupCommand. Admin-only.
+// /addgroup [groupId] — admin-only. Defaults to current chat.
 export function createAddGroupCommand(config, store) {
-  return async (msg, sender) => {
+  return async (msg, sender, args) => {
     if (!(await requireAdminUser(msg.from.id, msg.chat.id, config, sender))) return;
-    const args = splitArgs(getCommandArguments(msg.text));
     if (args.length > 1) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;

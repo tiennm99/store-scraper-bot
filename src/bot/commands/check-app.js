@@ -1,12 +1,12 @@
 import { buildTable } from '../../util/table.js';
 import { daysBetween, formatDateInTz } from '../../util/time.js';
-import { authorizeGroup, getCommandArguments, splitArgs } from './command-utils.js';
+import { authorizeGroup } from './command-utils.js';
 
-// /checkapp — Java CheckAppCommand. Reports update status per app, per store.
+// /checkapp — reports update status per app, per store.
 export function createCheckAppCommand(config, store, appleScraper, googleScraper) {
-  return async (msg, sender) => {
+  return async (msg, sender, args) => {
     if (!(await authorizeGroup(msg.chat.id, store, sender))) return;
-    if (splitArgs(getCommandArguments(msg.text)).length !== 0) {
+    if (args.length !== 0) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;
     }

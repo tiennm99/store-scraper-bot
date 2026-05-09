@@ -1,10 +1,9 @@
-import { getCommandArguments, requireAdminUser, splitArgs } from './command-utils.js';
+import { requireAdminUser } from './command-utils.js';
 
-// /delgroup [groupId] — Java DeleteGroupCommand. Admin-only.
+// /delgroup [groupId] — admin-only.
 export function createDeleteGroupCommand(config, store) {
-  return async (msg, sender) => {
+  return async (msg, sender, args) => {
     if (!(await requireAdminUser(msg.from.id, msg.chat.id, config, sender))) return;
-    const args = splitArgs(getCommandArguments(msg.text));
     if (args.length > 1) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;
