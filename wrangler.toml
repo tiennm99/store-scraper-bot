@@ -1,4 +1,4 @@
-name = "js-store-scraper-bot"
+name = "store-scraper-bot"
 main = "src/index.js"
 compatibility_date = "2025-10-01"
 # nodejs_compat_v2 enables node:net + node:tls so the official `mongodb` driver

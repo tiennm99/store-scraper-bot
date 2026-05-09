@@ -1,6 +1,6 @@
-# js-store-scraper-bot
+# store-scraper-bot
 
-JavaScript (Node.js) port of [store-scraper-bot](https://github.com/tiennm99/store-scraper-bot).
+JavaScript (Node.js) implementation. Ports [legacy-store-scraper-bot](https://github.com/tiennm99/legacy-store-scraper-bot) (Java).
 
 > ⚠️ **Preview / unstable — use at your own risk.**
 > This port was produced largely with AI assistance and has **not** been tested
