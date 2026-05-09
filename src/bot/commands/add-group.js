@@ -17,16 +17,12 @@ export function createAddGroupCommand(config, store) {
       }
       groupId = parsed;
     }
-    try {
-      const added = await store.admin.addGroup(groupId);
-      if (!added) {
-        await sender.sendMessage(msg.chat.id, 'Group is already added');
-        return;
-      }
-      await store.group.initGroup(groupId);
-      await sender.sendMessage(msg.chat.id, 'Group added successfully');
-    } catch {
-      await sender.sendMessage(msg.chat.id, 'Internal server error');
+    const added = await store.admin.addGroup(groupId);
+    if (!added) {
+      await sender.sendMessage(msg.chat.id, 'Group is already added');
+      return;
     }
+    await store.group.initGroup(groupId);
+    await sender.sendMessage(msg.chat.id, 'Group added successfully');
   };
 }

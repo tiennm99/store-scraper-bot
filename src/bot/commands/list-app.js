@@ -9,17 +9,13 @@ export function createListAppCommand(store) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;
     }
-    try {
-      const group = await store.group.getGroup(msg.chat.id);
-      const out =
-        '<b>Apple Apps</b>\n' +
-        formatAppTable(group.appleApps) +
-        '\n<b>Google Apps</b>\n' +
-        formatAppTable(group.googleApps);
-      await sender.sendMessage(msg.chat.id, out);
-    } catch {
-      await sender.sendMessage(msg.chat.id, 'Internal server error');
-    }
+    const group = await store.group.getGroup(msg.chat.id);
+    const out =
+      '<b>Apple Apps</b>\n' +
+      formatAppTable(group.appleApps) +
+      '\n<b>Google Apps</b>\n' +
+      formatAppTable(group.googleApps);
+    await sender.sendMessage(msg.chat.id, out);
   };
 }
 

@@ -23,18 +23,14 @@ export function createAddGoogleAppCommand(store, googleScraper) {
       return;
     }
 
-    try {
-      const added = await store.group.addGoogleApp(msg.chat.id, appId, country);
-      if (!added) {
-        await sender.sendMessage(msg.chat.id, `Google app <code>${appId}</code> is already added`);
-        return;
-      }
-      await sender.sendMessage(
-        msg.chat.id,
-        `Google app <code>${appId}</code>, country <b>${country}</b> added successfully`,
-      );
-    } catch {
-      await sender.sendMessage(msg.chat.id, 'Internal server error');
+    const added = await store.group.addGoogleApp(msg.chat.id, appId, country);
+    if (!added) {
+      await sender.sendMessage(msg.chat.id, `Google app <code>${appId}</code> is already added`);
+      return;
     }
+    await sender.sendMessage(
+      msg.chat.id,
+      `Google app <code>${appId}</code>, country <b>${country}</b> added successfully`,
+    );
   };
 }

@@ -9,21 +9,17 @@ export function createCheckAppScoresCommand(store, appleScraper, googleScraper) 
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;
     }
-    try {
-      const group = await store.group.getGroup(msg.chat.id);
-      const headers = ['AppId', 'Score', 'Ratings'];
-      const appleRows = await scoreRowsFor(group.appleApps, appleScraper);
-      const googleRows = await scoreRowsFor(group.googleApps, googleScraper);
+    const group = await store.group.getGroup(msg.chat.id);
+    const headers = ['AppId', 'Score', 'Ratings'];
+    const appleRows = await scoreRowsFor(group.appleApps, appleScraper);
+    const googleRows = await scoreRowsFor(group.googleApps, googleScraper);
 
-      const out =
-        '<b>Apple Apps</b>\n' +
-        renderTable(appleRows, headers) +
-        '\n<b>Google Apps</b>\n' +
-        renderTable(googleRows, headers);
-      await sender.sendMessage(msg.chat.id, out);
-    } catch {
-      await sender.sendMessage(msg.chat.id, 'Internal server error');
-    }
+    const out =
+      '<b>Apple Apps</b>\n' +
+      renderTable(appleRows, headers) +
+      '\n<b>Google Apps</b>\n' +
+      renderTable(googleRows, headers);
+    await sender.sendMessage(msg.chat.id, out);
   };
 }
 

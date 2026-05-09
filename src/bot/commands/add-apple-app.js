@@ -28,18 +28,14 @@ export function createAddAppleAppCommand(store, appleScraper) {
       return;
     }
 
-    try {
-      const added = await store.group.addAppleApp(msg.chat.id, resp.appId, country);
-      if (!added) {
-        await sender.sendMessage(msg.chat.id, `Apple app <code>${resp.appId}</code> is already added`);
-        return;
-      }
-      await sender.sendMessage(
-        msg.chat.id,
-        `Apple app <code>${resp.appId}</code>, country <b>${country}</b> added successfully`,
-      );
-    } catch {
-      await sender.sendMessage(msg.chat.id, 'Internal server error');
+    const added = await store.group.addAppleApp(msg.chat.id, resp.appId, country);
+    if (!added) {
+      await sender.sendMessage(msg.chat.id, `Apple app <code>${resp.appId}</code> is already added`);
+      return;
     }
+    await sender.sendMessage(
+      msg.chat.id,
+      `Apple app <code>${resp.appId}</code>, country <b>${country}</b> added successfully`,
+    );
   };
 }
