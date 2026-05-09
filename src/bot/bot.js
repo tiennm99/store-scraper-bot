@@ -67,8 +67,8 @@ export function createBot(config, store, appleScraper, googleScraper) {
     listapp: createListAppCommand(store),
     checkapp: createCheckAppCommand(config, store, appleScraper, googleScraper),
     checkappscore: createCheckAppScoresCommand(store, appleScraper, googleScraper),
-    rawappleapp: createRawAppleAppCommand(appleScraper),
-    rawgoogleapp: createRawGoogleAppCommand(googleScraper),
+    rawappleapp: createRawAppleAppCommand(store, appleScraper),
+    rawgoogleapp: createRawGoogleAppCommand(store, googleScraper),
   };
 
   return { sender, commands, api };

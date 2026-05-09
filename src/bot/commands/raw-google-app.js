@@ -1,8 +1,10 @@
 import { buildGoogleRequest } from '../../api/google-scraper.js';
+import { authorizeGroup } from './command-utils.js';
 
 // /rawgoogleapp <appId> [country=vn]
-export function createRawGoogleAppCommand(googleScraper) {
+export function createRawGoogleAppCommand(store, googleScraper) {
   return async (msg, sender, args) => {
+    if (!(await authorizeGroup(msg.chat.id, store, sender))) return;
     if (args.length < 1 || args.length > 2) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;
