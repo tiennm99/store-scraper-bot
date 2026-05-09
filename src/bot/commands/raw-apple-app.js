@@ -1,8 +1,10 @@
 import { buildAppleRequestByBundleId, buildAppleRequestByTrackId } from '../../api/apple-scraper.js';
+import { authorizeGroup } from './command-utils.js';
 
 // /rawappleapp <id|appId> [country=vn] — sends raw upstream JSON as a document.
-export function createRawAppleAppCommand(appleScraper) {
+export function createRawAppleAppCommand(store, appleScraper) {
   return async (msg, sender, args) => {
+    if (!(await authorizeGroup(msg.chat.id, store, sender))) return;
     if (args.length < 1 || args.length > 2) {
       await sender.sendMessage(msg.chat.id, 'Invalid arguments');
       return;
