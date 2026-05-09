@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "mongodb": "^6.10.0",
-    "wrangler": "^3.90.0"
+    "wrangler": "^4.90.0"
   },
   "license": "Apache-2.0",
   "dependencies": {
