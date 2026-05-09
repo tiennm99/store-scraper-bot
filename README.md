@@ -1,6 +1,6 @@
 # go-store-scraper-bot
 
-Go port of [legacy-store-scraper-bot](https://github.com/tiennm99/legacy-store-scraper-bot) (Java).
+Go port of [java-store-scraper-bot](https://github.com/tiennm99/java-store-scraper-bot).
 
 > ⚠️ **Preview / unstable — use at your own risk.**
 > This port was produced largely with AI assistance and has **not** been tested
