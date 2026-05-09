@@ -1,5 +1,6 @@
 import { buildTable, formatNumber, truncateString } from '../util/table.js';
 import { daysBetween, formatDateInTz, formatDateTimeInTz, weekdayInTz } from '../util/time.js';
+import { resolveDaysWarning } from '../util/group-settings.js';
 
 // One-shot daily check, invoked from api/cron.js. The cron schedule lives in
 // vercel.json ("0 0 * * *" UTC = 7am Asia/Ho_Chi_Minh).
@@ -36,7 +37,7 @@ async function checkGroup(groupId, silent, now, config, store, sender, appleScra
     return;
   }
 
-  const threshold = config.numDaysWarningNotUpdated;
+  const threshold = resolveDaysWarning(group, config);
   const stale = [];
 
   for (const info of group.appleApps) {
@@ -91,12 +92,12 @@ async function checkGroup(groupId, silent, now, config, store, sender, appleScra
     logger.info({ groupId }, 'All apps up-to-date');
     return;
   }
-  const message = buildReport(groupId, stale, now, config);
+  const message = buildReport(groupId, stale, now, config, threshold);
   if (silent) await sender.sendMessageSilent(groupId, message);
   else await sender.sendMessage(groupId, message);
 }
 
-function buildReport(groupId, apps, now, config) {
+function buildReport(groupId, apps, now, config, threshold) {
   const headers = ['App', 'Store', 'Days', 'Updated', 'Score', 'Reviews', 'Ratings'];
   const rows = apps.map((a) => [
     truncateString(a.title || '', 30),
@@ -111,7 +112,7 @@ function buildReport(groupId, apps, now, config) {
     `<b>Daily App Check Report</b>\n` +
     `Date: ${formatDateTimeInTz(now, config.timezone)}\n` +
     `Group: <code>${groupId}</code>\n` +
-    `Apps not updated in &gt;${config.numDaysWarningNotUpdated} days: <b>${apps.length}</b>\n\n` +
+    `Apps not updated in &gt;${threshold} days: <b>${apps.length}</b>\n\n` +
     `<pre>${buildTable(headers, rows)}</pre>`
   );
 }

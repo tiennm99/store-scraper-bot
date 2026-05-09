@@ -34,6 +34,15 @@ export function createGroupRepository(handle) {
     return true;
   }
 
+  async function setSetting(groupId, key, value) {
+    return mutateAndSave(groupId, (g) => {
+      g.settings ??= {};
+      if (value === undefined || value === null) delete g.settings[key];
+      else g.settings[key] = value;
+      return true;
+    });
+  }
+
   function addApp(list, appId, country) {
     if (list.some((a) => a.appId === appId)) return false;
     list.push({ appId, country });
@@ -51,6 +60,7 @@ export function createGroupRepository(handle) {
     getGroup,
     initGroup,
     deleteGroup,
+    setSetting,
     addAppleApp: (groupId, appId, country) =>
       mutateAndSave(groupId, (g) => addApp(g.appleApps, appId, country)),
     removeAppleApp: (groupId, appId) =>
