@@ -3,13 +3,14 @@ import { createGroupRepository } from './group-repository.js';
 import { createAppleAppRepository } from './apple-app-repository.js';
 import { createGoogleAppRepository } from './google-app-repository.js';
 
-// Single binding point for all repositories. Threads `env` once so command
-// handlers don't need to know about the Worker `env` argument or the KV binding.
-export function createStore(env, appCacheSeconds) {
+// Single binding point for all repositories. Threads the Upstash handle
+// (client + key prefix) once so command handlers don't need to know about
+// process.env or the Redis client construction.
+export function createStore(handle, appCacheSeconds) {
   return {
-    admin: createAdminRepository(env),
-    group: createGroupRepository(env),
-    appleApp: createAppleAppRepository(env, appCacheSeconds),
-    googleApp: createGoogleAppRepository(env, appCacheSeconds),
+    admin: createAdminRepository(handle),
+    group: createGroupRepository(handle),
+    appleApp: createAppleAppRepository(handle, appCacheSeconds),
+    googleApp: createGoogleAppRepository(handle, appCacheSeconds),
   };
 }

@@ -19,7 +19,7 @@ Replace the Cloudflare Worker default-export entry (`src/index.js` with `fetch`/
 - Webhook acks fast (<2 s), continues work in background via `@vercel/functions` `waitUntil`
 - Cron handler runs daily check, returns 200 on success
 - Both handlers use `loadConfig(process.env)` instead of CF `env` arg
-- Build wires up `createUpstashClient` once per invocation (cheap — no connection)
+- Build wires up `createUpstashClient` once per invocation (cheap — no connection); `KEY_PREFIX` flows through `process.env` into the handle so all reads/writes stay namespaced
 
 ## Architecture
 

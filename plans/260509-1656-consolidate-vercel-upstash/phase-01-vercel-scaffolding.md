@@ -46,8 +46,8 @@ Vercel auto-detects `api/*.js` as serverless functions in Phase 4. This phase on
 2. Update `package.json` scripts:
    - `dev`: `vercel dev` (was `wrangler dev`)
    - `deploy`: `vercel deploy --prod && npm run register`
-   - Keep `migrate`, `lint`. Drop `migrate:bulk` (CF-specific).
-   - Add `register`: `node --env-file=.env.deploy scripts/register-webhook.js`
+   - Keep `lint`. Drop `migrate:bulk` (CF-specific). `migrate` script gets repointed in Phase 5 to the new Atlas → Upstash script.
+   - Keep `register`: `node --env-file=.env.deploy scripts/register-webhook.js`
 3. Create `vercel.json`:
    ```json
    {
@@ -58,7 +58,7 @@ Vercel auto-detects `api/*.js` as serverless functions in Phase 4. This phase on
      }
    }
    ```
-4. Create `.vercelignore` excluding `plans/`, `scripts/.atlas-export.json`, `*.md`, `Dockerfile`, `docker-compose*.yml`, `wrangler.toml` (until Phase 7 deletes it).
+4. Create `.vercelignore` excluding `plans/`, `*.md`, `Dockerfile`, `docker-compose*.yml`, `wrangler.toml` (Phase 7 deletes the last four; Vercel just needs to ignore them in the meantime). New Phase 5 migration script writes directly to Upstash — no `scripts/.atlas-export.json` artifact to ignore.
 5. `npm install` and verify `node_modules` has all four new deps.
 
 ## Success Criteria

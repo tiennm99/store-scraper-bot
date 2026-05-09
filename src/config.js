@@ -9,8 +9,8 @@ function parseAdminIds(raw) {
     .filter((n) => Number.isFinite(n));
 }
 
-// Builds config from a Workers `env` binding. Called once per fetch / scheduled
-// invocation; cheap.
+// Builds config from a plain env dictionary (Vercel's `process.env` or any
+// dict-like). Called once per webhook / cron invocation; cheap.
 export function loadConfig(env) {
   const required = [
     'TELEGRAM_BOT_TOKEN',

@@ -1,7 +1,8 @@
+import store from 'app-store-scraper';
 import { newAppleApp } from '../models/apple-app.js';
 
 // Mirrors Java AppStoreScraper (api/apple/AppStoreScraper.java).
-const BASE_URL = 'https://store-scraper.vercel.app/apple';
+// Calls the `app-store-scraper` npm lib directly (no HTTP roundtrip).
 
 export function buildAppleRequestByTrackId(id, country) {
   return { id, country, ratings: true };
@@ -11,23 +12,19 @@ export function buildAppleRequestByBundleId(appId, country) {
   return { appId, country, ratings: true };
 }
 
-export function createAppleScraper(config, store) {
+export function createAppleScraper(config, repository) {
   const { logger } = config;
-  const repo = store.appleApp;
-
-  async function rawApp(req) {
-    const res = await fetch(`${BASE_URL}/app`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req),
-    });
-    if (!res.ok) throw new Error(`apple HTTP status ${res.status}`);
-    return await res.text();
-  }
+  const repo = repository.appleApp;
 
   async function app(req) {
-    const text = await rawApp(req);
-    return JSON.parse(text);
+    return store.app(req);
+  }
+
+  // rawApp returns a JSON-text representation of the parsed object so the
+  // /rawappleapp command and any other text consumers stay parity-compatible
+  // with the previous HTTP-text response.
+  async function rawApp(req) {
+    return JSON.stringify(await app(req));
   }
 
   async function cache(resp) {
