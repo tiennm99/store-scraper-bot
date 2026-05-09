@@ -1,5 +1,6 @@
 import { buildTable } from '../../util/table.js';
 import { daysBetween, formatDateInTz } from '../../util/time.js';
+import { resolveDaysWarning } from '../../util/group-settings.js';
 import { authorizeGroup } from './command-utils.js';
 
 // /checkapp — reports update status per app, per store.
@@ -12,7 +13,7 @@ export function createCheckAppCommand(config, store, appleScraper, googleScraper
     }
     const group = await store.group.getGroup(msg.chat.id);
     const nowMs = Date.now();
-    const threshold = config.numDaysWarningNotUpdated;
+    const threshold = resolveDaysWarning(group, config);
     const headers = ['AppId', 'Updated', 'Days', 'OK'];
 
     const appleRows = await appleRowsFor(group.appleApps, appleScraper, nowMs, threshold, config.timezone);

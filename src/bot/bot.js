@@ -11,6 +11,8 @@ import { createCheckAppCommand } from './commands/check-app.js';
 import { createCheckAppScoresCommand } from './commands/check-app-scores.js';
 import { createRawAppleAppCommand } from './commands/raw-apple-app.js';
 import { createRawGoogleAppCommand } from './commands/raw-google-app.js';
+import { createGetSettingsCommand } from './commands/get-settings.js';
+import { createSetDaysWarningCommand } from './commands/set-days-warning.js';
 
 const PARSE_MODE = 'HTML';
 
@@ -69,6 +71,8 @@ export function createBot(config, store, appleScraper, googleScraper) {
     checkappscore: createCheckAppScoresCommand(store, appleScraper, googleScraper),
     rawappleapp: createRawAppleAppCommand(store, appleScraper),
     rawgoogleapp: createRawGoogleAppCommand(store, googleScraper),
+    settings: createGetSettingsCommand(config, store),
+    setdayswarning: createSetDaysWarningCommand(config, store),
   };
 
   return { sender, commands, api };
