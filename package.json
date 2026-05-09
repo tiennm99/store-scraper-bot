@@ -1,7 +1,7 @@
 {
   "name": "store-scraper-bot",
   "version": "0.3.0",
-  "description": "Telegram bot tracking Apple App Store + Google Play app updates. JavaScript implementation, ports legacy-store-scraper-bot (Java).",
+  "description": "Telegram bot tracking Apple App Store + Google Play app updates. JavaScript implementation, ports java-store-scraper-bot.",
   "type": "module",
   "private": true,
   "engines": {
