@@ -1,7 +1,7 @@
 ---
 title: "Cloudflare KV migration + deploy"
 description: "Replace MongoDB Atlas with Cloudflare KV as the storage layer, deploy to Workers, register Telegram webhook, smoke-test, and document. Supersedes the Atlas-based deploy plan."
-status: pending
+status: superseded
 priority: P1
 effort: 5h
 branch: main
@@ -9,7 +9,10 @@ tags: [cloudflare-workers, cloudflare-kv, deploy, migration]
 created: 2026-05-05
 blockedBy: []
 blocks: [260426-2327-cloudflare-deploy-and-smoke]
+supersededBy: 260509-1656-consolidate-vercel-upstash
 ---
+
+> **Superseded** — User chose to consolidate on Vercel + Upstash instead of completing the CF Workers deploy. Code-level KV migration shipped (commits `067d463`..`c4c6a93`); deploy phases never executed. Continuation tracked in [`260509-1656-consolidate-vercel-upstash`](../260509-1656-consolidate-vercel-upstash/plan.md).
 
 # Cloudflare Workers + KV Storage Migration
 
