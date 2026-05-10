@@ -1,5 +1,5 @@
-import { buildTable, formatNumber, truncateString } from '../util/table.js';
-import { daysBetween, formatDateInTz, formatDateTimeInTz, weekdayInTz } from '../util/time.js';
+import { buildTable } from '../util/table.js';
+import { daysBetween, formatDateInTz, weekdayInTz } from '../util/time.js';
 import { resolveDaysWarning } from '../util/group-settings.js';
 
 // One-shot daily check, invoked from api/cron.js. The cron schedule lives in
@@ -38,7 +38,8 @@ async function checkGroup(groupId, silent, now, config, store, sender, appleScra
   }
 
   const threshold = resolveDaysWarning(group, config);
-  const stale = [];
+  const staleApple = [];
+  const staleGoogle = [];
 
   for (const info of group.appleApps) {
     try {
@@ -48,15 +49,10 @@ async function checkGroup(groupId, silent, now, config, store, sender, appleScra
       if (Number.isNaN(updatedMs)) continue;
       const days = daysBetween(updatedMs, now.getTime());
       if (days > threshold) {
-        stale.push({
+        staleApple.push({
           appId: info.appId,
-          title: app.title,
           days,
           updated: formatDateInTz(new Date(updatedMs), config.timezone),
-          score: app.score,
-          reviews: Number(app.reviews ?? 0),
-          ratings: Number(app.ratings ?? 0),
-          isApple: true,
         });
       }
     } catch (err) {
@@ -72,15 +68,10 @@ async function checkGroup(groupId, silent, now, config, store, sender, appleScra
       if (!Number.isFinite(updatedMs)) continue;
       const days = daysBetween(updatedMs, now.getTime());
       if (days > threshold) {
-        stale.push({
+        staleGoogle.push({
           appId: info.appId,
-          title: app.title,
           days,
           updated: formatDateInTz(new Date(updatedMs), config.timezone),
-          score: app.score,
-          reviews: Number(app.reviews ?? 0),
-          ratings: Number(app.ratings ?? 0),
-          isApple: false,
         });
       }
     } catch (err) {
@@ -88,31 +79,27 @@ async function checkGroup(groupId, silent, now, config, store, sender, appleScra
     }
   }
 
-  if (stale.length === 0) {
+  const total = staleApple.length + staleGoogle.length;
+  if (total === 0) {
     logger.info({ groupId }, 'All apps up-to-date');
     return;
   }
-  const message = buildReport(groupId, stale, now, config, threshold);
+  const message = buildReport(staleApple, staleGoogle);
   if (silent) await sender.sendMessageSilent(groupId, message);
   else await sender.sendMessage(groupId, message);
 }
 
-function buildReport(groupId, apps, now, config, threshold) {
-  const headers = ['App', 'Store', 'Days', 'Updated', 'Score', 'Reviews', 'Ratings'];
-  const rows = apps.map((a) => [
-    truncateString(a.title || '', 30),
-    a.isApple ? 'Apple' : 'Google',
-    String(a.days),
-    a.updated,
-    Number(a.score ?? 0).toFixed(1),
-    String(a.reviews),
-    formatNumber(a.ratings),
-  ]);
-  return (
-    `<b>Daily App Check Report</b>\n` +
-    `Date: ${formatDateTimeInTz(now, config.timezone)}\n` +
-    `Group: <code>${groupId}</code>\n` +
-    `Apps not updated in &gt;${threshold} days: <b>${apps.length}</b>\n\n` +
-    `<pre>${buildTable(headers, rows)}</pre>`
-  );
+function buildReport(staleApple, staleGoogle) {
+  const total = staleApple.length + staleGoogle.length;
+  const headers = ['#', 'AppId', 'Updated', 'Days'];
+  let out = `You have ${total} app(s) need to be updated!\n`;
+  if (staleApple.length > 0) {
+    const rows = staleApple.map((a, i) => [String(i + 1), a.appId, a.updated, String(a.days)]);
+    out += `<b>${staleApple.length} Apple Apps:</b>\n<code>\n${buildTable(headers, rows)}\n</code>\n`;
+  }
+  if (staleGoogle.length > 0) {
+    const rows = staleGoogle.map((a, i) => [String(i + 1), a.appId, a.updated, String(a.days)]);
+    out += `<b>${staleGoogle.length} Google Apps:</b>\n<code>\n${buildTable(headers, rows)}\n</code>`;
+  }
+  return out;
 }
