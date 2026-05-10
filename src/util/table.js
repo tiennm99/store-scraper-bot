@@ -51,16 +51,3 @@ function writeSeparator(widths) {
 function padRight(s, len) {
   return s.length >= len ? s : s + ' '.repeat(len - s.length);
 }
-
-export function truncateString(s, maxLen) {
-  if (s.length <= maxLen) return s;
-  if (maxLen <= 3) return s.slice(0, maxLen);
-  return s.slice(0, maxLen - 3) + '...';
-}
-
-export function formatNumber(n) {
-  const v = Number(n);
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
-  return String(v);
-}
