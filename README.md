@@ -1,116 +1,141 @@
 # store-scraper-bot
 
-JavaScript (Node.js) implementation. Ports [java-store-scraper-bot](https://github.com/tiennm99/java-store-scraper-bot).
-Runs on Vercel serverless functions with Upstash Redis as the data store.
+Telegram bot that tracks Apple App Store and Google Play app version updates.
+Sends daily reports to registered groups and alerts when apps haven't been updated
+past a configurable threshold. JavaScript (Node.js) port of
+[store-scraper-bot-java](https://github.com/tiennm99/java-store-scraper-bot), running
+on Vercel serverless functions with Upstash Redis as the data store.
 
-## Status
+---
 
-- Upstash Redis schema mirrors the Java/Go Mongo layout: keys `admin`,
-  `group:{chatId}`, `apple:{appId}`, `google:{appId}` (last two TTL'd via Redis
-  `EX`). Multi-tenant isolation via `KEY_PREFIX` (default `store-scraper-bot:`).
-- Command set defined in `src/bot/commands/index.js` (single source of truth — catalog drives both dispatch and the Telegram menu). Admin-only commands are hidden from the default menu and shown only in per-admin chat scope.
-- HTML parse mode; weekend-silent daily report; configurable upstream cache (default 10 min).
-- Per-group warning threshold override via `/setdayswarning` (falls back to `NUM_DAYS_WARNING_NOT_UPDATED` env default).
-- Inlined `app-store-scraper` + `google-play-scraper` (no external scraper service).
+## Features
 
-## Requirements
+- **Multi-store tracking** — monitors Apple App Store and Google Play apps in a single bot
+- **Multi-group support** — each Telegram group manages its own tracked app list independently
+- **Daily reports** — 07:00 Asia/Saigon (00:00 UTC) cron; weekend-silent by default
+- **Stale-update warnings** — alerts when an app hasn't shipped an update past N days (configurable per group via `/setdayswarning`)
+- **Admin-only commands** — add/remove apps and groups restricted to IDs in `ADMIN_IDS`
+- **Upstream response cache** — configurable TTL (default 10 min) reduces scraper API calls
+- **ESM, Node 20+** — uses built-in `fetch`; no extra HTTP dependency
 
-- Node.js 20+ (uses built-in `fetch`)
-- Vercel account (Hobby plan / free tier is enough)
-- Upstash Redis database (free tier; sign up at upstash.com or via Vercel Marketplace)
+---
 
-## Configuration
-
-Vercel env vars:
-
-| Name | Notes |
-|---|---|
-| `TELEGRAM_BOT_TOKEN` | Telegram bot token (required) |
-| `TELEGRAM_BOT_USERNAME` | Bot username (required) |
-| `TELEGRAM_WEBHOOK_SECRET` | ≥32 chars random; verifies inbound webhook calls |
-| `ADMIN_IDS` | Comma-separated Telegram user IDs (required) |
-| `UPSTASH_REDIS_REST_URL` | Upstash REST endpoint (or `KV_REST_API_URL` from Vercel Marketplace integration) |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash REST token (or `KV_REST_API_TOKEN` fallback) |
-| `KEY_PREFIX` | Namespace for all Redis keys (default `store-scraper-bot:`) |
-| `CRON_SECRET` | ≥32 chars random; required by Vercel Cron handler |
-| `APP_CACHE_SECONDS` | Cache TTL for upstream API responses (default 600) |
-| `NUM_DAYS_WARNING_NOT_UPDATED` | Default warning threshold in days (default 30; per-group override via `/setdayswarning`) |
-
-Operator-only `.env.deploy` (used by `pnpm register` + `pnpm describe`) — see `.env.deploy.example`.
-
-## Run
-
-Local dev:
-
-```sh
-pnpm install
-vercel link            # link to your Vercel project
-vercel env pull .env.local
-pnpm dev               # vercel dev
-```
-
-Deploy:
-
-```sh
-pnpm deploy            # vercel deploy --prod && register webhook
-```
-
-`pnpm register` re-points the Telegram webhook at the URL in `.env.deploy:WORKER_URL`,
-and refreshes the menu: default scope = user commands only, plus a chat-scoped menu
-(full set including admin commands) for every ID in `.env.deploy:ADMIN_IDS`. Re-run it
-whenever `src/bot/commands/index.js` changes — Telegram caches the menu until
-`setMyCommands` is called again. `pnpm deploy` does this automatically.
-`pnpm describe` updates the bot's profile description / about-text (run once when copy changes).
-
-## Operations
-
-### Dashboards
-
-- **Vercel project** — function logs, cron history, deploy status
-- **Upstash console** — Redis metrics, key browser, request latency
-
-### Credential rotation (quarterly)
-
-- **Upstash REST token** — regenerate in Upstash console, update `UPSTASH_REDIS_REST_TOKEN` in Vercel env, redeploy
-- **Telegram webhook secret** — generate new value, update `TELEGRAM_WEBHOOK_SECRET` in Vercel env, redeploy, then `pnpm register`
-
-### Dependency security
-
-- Transitive vulnerabilities from `app-store-scraper → request` are pinned via `overrides` in `package.json` (`form-data`, `qs`, `tough-cookie`).
-- The unfixable `request` SSRF advisory is risk-accepted: only known endpoints (`itunes.apple.com`, `play.google.com`) are called; no user-controlled URLs reach `request`.
-
-## Project Layout
+## Architecture
 
 ```
 api/
-├── webhook.js          # Telegram webhook entry (Vercel function)
-└── cron.js             # Daily cron entry (Vercel Cron)
+├── webhook.js        # Telegram webhook entry (Vercel function)
+└── cron.js           # Daily report cron (Vercel Cron, 00:00 UTC)
 src/
-├── app-builder.js      # wires config, Upstash, scrapers, bot, scheduler
-├── config.js
-├── logger.js
-├── api/
-│   ├── apple-scraper.js
-│   └── google-scraper.js
-├── models/             # plain object factories matching the Mongo schema
-├── repository/         # Upstash adapter + per-collection wrappers
+├── app-builder.js    # Wires config, Upstash, scrapers, bot, scheduler
+├── api/              # apple-scraper.js + google-scraper.js (inlined scrapers)
+├── models/           # Plain object factories mirroring original Mongo schema
+├── repository/       # Upstash REST adapter + per-collection wrappers
 ├── bot/
-│   ├── bot.js          # command dispatch, sender
-│   ├── dispatch.js
-│   ├── telegram-api.js
-│   └── commands/       # one file per /command
-├── scheduler/scheduler.js  # 07:00 Asia/Saigon = 00:00 UTC
-└── util/               # table renderer, time helpers
+│   ├── commands/     # One file per /command; index.js is single source of truth
+│   └── dispatch.js
+├── scheduler/        # Cron handler — computes stale apps, formats report
+└── util/             # Table renderer, time helpers
 scripts/
-├── register-webhook.js
-└── check-secret-leaks.js
+├── register-webhook.js     # Points Telegram webhook + refreshes menu scopes
+└── check-secret-leaks.js   # Pre-commit secret scan
 ```
 
-## Differences vs Go / Java
+Storage uses Upstash Redis keys: `admin`, `group:{chatId}`, `apple:{appId}`,
+`google:{appId}`. Key namespace is isolated per deployment via `KEY_PREFIX`.
 
-- Group / admin / chat IDs are JS `number`s. Telegram chat IDs fit in safe-int
-  range, so this is intentional and matches Telegram's documented limits.
-- Pino-style structured JSON logging instead of Java/Go's structured loggers.
-- HTTP via Node 20's built-in `fetch` (no extra dependency).
-- Storage is Upstash Redis (REST) instead of MongoDB; key namespace mirrors the
-  original collections, TTL via Redis `EX`.
+---
+
+## Requirements
+
+- Node.js 20+
+- [Vercel](https://vercel.com) account (Hobby / free tier sufficient)
+- [Upstash Redis](https://upstash.com) database (free tier sufficient)
+- Telegram bot token from [@BotFather](https://t.me/BotFather)
+
+---
+
+## Quick Start
+
+```sh
+git clone https://github.com/tiennm99/store-scraper-bot
+cd store-scraper-bot
+pnpm install
+cp .env.example .env.local
+# Fill in TELEGRAM_BOT_TOKEN, UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, etc.
+vercel link
+vercel env pull .env.local
+pnpm dev            # vercel dev — local webhook tunnel
+```
+
+---
+
+## Configuration
+
+Set these as Vercel environment variables (or in `.env.local` for local dev):
+
+| Variable | Required | Description |
+|---|---|---|
+| `TELEGRAM_BOT_TOKEN` | Yes | Bot token from @BotFather |
+| `TELEGRAM_BOT_USERNAME` | Yes | Bot username (without `@`) |
+| `TELEGRAM_WEBHOOK_SECRET` | Yes | ≥32 chars random string; verifies inbound Telegram calls |
+| `ADMIN_IDS` | Yes | Comma-separated Telegram user IDs with admin access |
+| `UPSTASH_REDIS_REST_URL` | Yes | Upstash REST endpoint (or `KV_REST_API_URL` from Vercel integration) |
+| `UPSTASH_REDIS_REST_TOKEN` | Yes | Upstash REST token (or `KV_REST_API_TOKEN` fallback) |
+| `KEY_PREFIX` | No | Redis key namespace (default: `store-scraper-bot:`) |
+| `CRON_SECRET` | Yes | ≥32 chars random; authenticates Vercel Cron calls |
+| `APP_CACHE_SECONDS` | No | Upstream scraper cache TTL in seconds (default: `600`) |
+| `NUM_DAYS_WARNING_NOT_UPDATED` | No | Default stale threshold in days (default: `30`) |
+
+Operator-only deploy variables (used by `pnpm register` and `pnpm describe`) go in
+`.env.deploy` — see `.env.deploy.example`.
+
+---
+
+## Deploy
+
+```sh
+pnpm deploy        # vercel deploy --prod && register webhook + Telegram menu
+```
+
+Re-run `pnpm register` any time `src/bot/commands/index.js` changes — Telegram
+caches the command menu until `setMyCommands` is called again.
+
+---
+
+## Bot Commands
+
+| Command | Scope | Description |
+|---|---|---|
+| `/info` | All | Bot info and current group settings |
+| `/check_app` | All | Check a specific app's current version |
+| `/list_app` | All | List tracked apps in this group |
+| `/list_group` | Admin | List all registered groups |
+| `/add_group` | Admin | Register a new group |
+| `/delete_group` | Admin | Remove a group |
+| `/add_apple_app` | Admin | Track an App Store app |
+| `/add_google_app` | Admin | Track a Play Store app |
+| `/delete_apple_app` | Admin | Remove a tracked App Store app |
+| `/delete_google_app` | Admin | Remove a tracked Play Store app |
+| `/set_app_ttl` | Admin | Override cache TTL for an app |
+| `/setdayswarning` | Admin | Per-group stale-warning threshold |
+| `/get_settings` | Admin | Show current group settings |
+
+---
+
+## Operations
+
+**Credential rotation (quarterly):**
+
+- Upstash token — regenerate in Upstash console, update `UPSTASH_REDIS_REST_TOKEN`, redeploy
+- Webhook secret — generate new value, update `TELEGRAM_WEBHOOK_SECRET`, redeploy, then `pnpm register`
+
+**Dependency note:** Transitive vulnerabilities from `app-store-scraper → request` are
+pinned via `overrides` in `package.json`. The `request` SSRF advisory is risk-accepted:
+only known endpoints (`itunes.apple.com`, `play.google.com`) are ever called.
+
+---
+
+## License
+
+Apache 2.0
