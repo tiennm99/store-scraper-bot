@@ -36,31 +36,31 @@ Vercel env vars:
 | `APP_CACHE_SECONDS` | Cache TTL for upstream API responses (default 600) |
 | `NUM_DAYS_WARNING_NOT_UPDATED` | Default warning threshold in days (default 30; per-group override via `/setdayswarning`) |
 
-Operator-only `.env.deploy` (used by `npm run register` + `npm run describe`) — see `.env.deploy.example`.
+Operator-only `.env.deploy` (used by `pnpm register` + `pnpm describe`) — see `.env.deploy.example`.
 
 ## Run
 
 Local dev:
 
 ```sh
-npm install
+pnpm install
 vercel link            # link to your Vercel project
 vercel env pull .env.local
-npm run dev            # vercel dev
+pnpm dev               # vercel dev
 ```
 
 Deploy:
 
 ```sh
-npm run deploy         # vercel deploy --prod && register webhook
+pnpm deploy            # vercel deploy --prod && register webhook
 ```
 
-`npm run register` re-points the Telegram webhook at the URL in `.env.deploy:WORKER_URL`,
+`pnpm register` re-points the Telegram webhook at the URL in `.env.deploy:WORKER_URL`,
 and refreshes the menu: default scope = user commands only, plus a chat-scoped menu
 (full set including admin commands) for every ID in `.env.deploy:ADMIN_IDS`. Re-run it
 whenever `src/bot/commands/index.js` changes — Telegram caches the menu until
-`setMyCommands` is called again. `npm run deploy` does this automatically.
-`npm run describe` updates the bot's profile description / about-text (run once when copy changes).
+`setMyCommands` is called again. `pnpm deploy` does this automatically.
+`pnpm describe` updates the bot's profile description / about-text (run once when copy changes).
 
 ## Operations
 
@@ -72,7 +72,7 @@ whenever `src/bot/commands/index.js` changes — Telegram caches the menu until
 ### Credential rotation (quarterly)
 
 - **Upstash REST token** — regenerate in Upstash console, update `UPSTASH_REDIS_REST_TOKEN` in Vercel env, redeploy
-- **Telegram webhook secret** — generate new value, update `TELEGRAM_WEBHOOK_SECRET` in Vercel env, redeploy, then `npm run register`
+- **Telegram webhook secret** — generate new value, update `TELEGRAM_WEBHOOK_SECRET` in Vercel env, redeploy, then `pnpm register`
 
 ### Dependency security
 
