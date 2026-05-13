@@ -60,12 +60,12 @@ Storage uses Upstash Redis keys: `admin`, `group:{chatId}`, `apple:{appId}`,
 ```sh
 git clone https://github.com/tiennm99/store-scraper-bot
 cd store-scraper-bot
-npm install
+pnpm install
 cp .env.example .env.local
 # Fill in TELEGRAM_BOT_TOKEN, UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, etc.
 vercel link
 vercel env pull .env.local
-npm run dev         # vercel dev — local webhook tunnel
+pnpm dev            # vercel dev — local webhook tunnel
 ```
 
 ---
@@ -87,7 +87,7 @@ Set these as Vercel environment variables (or in `.env.local` for local dev):
 | `APP_CACHE_SECONDS` | No | Upstream scraper cache TTL in seconds (default: `600`) |
 | `NUM_DAYS_WARNING_NOT_UPDATED` | No | Default stale threshold in days (default: `30`) |
 
-Operator-only deploy variables (used by `npm run register` and `npm run describe`) go in
+Operator-only deploy variables (used by `pnpm register` and `pnpm describe`) go in
 `.env.deploy` — see `.env.deploy.example`.
 
 ---
@@ -95,10 +95,10 @@ Operator-only deploy variables (used by `npm run register` and `npm run describe
 ## Deploy
 
 ```sh
-npm run deploy        # vercel deploy --prod && register webhook + Telegram menu
+pnpm deploy        # vercel deploy --prod && register webhook + Telegram menu
 ```
 
-Re-run `npm run register` any time `src/bot/commands/index.js` changes — Telegram
+Re-run `pnpm register` any time `src/bot/commands/index.js` changes — Telegram
 caches the command menu until `setMyCommands` is called again.
 
 ---
@@ -128,7 +128,7 @@ caches the command menu until `setMyCommands` is called again.
 **Credential rotation (quarterly):**
 
 - Upstash token — regenerate in Upstash console, update `UPSTASH_REDIS_REST_TOKEN`, redeploy
-- Webhook secret — generate new value, update `TELEGRAM_WEBHOOK_SECRET`, redeploy, then `npm run register`
+- Webhook secret — generate new value, update `TELEGRAM_WEBHOOK_SECRET`, redeploy, then `pnpm register`
 
 **Dependency note:** Transitive vulnerabilities from `app-store-scraper → request` are
 pinned via `overrides` in `package.json`. The `request` SSRF advisory is risk-accepted:
