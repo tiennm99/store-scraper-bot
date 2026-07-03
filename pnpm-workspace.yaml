@@ -2,6 +2,5 @@ allowBuilds:
   es5-ext: true
 
 overrides:
-  form-data: "^2.5.5"
-  qs: "^6.14.1"
-  tough-cookie: "^4.1.4"
+  request: "npm:@cypress/request@^4.0.1"
+  undici: "7.28.0"
