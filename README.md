@@ -130,9 +130,9 @@ caches the command menu until `setMyCommands` is called again.
 - Upstash token — regenerate in Upstash console, update `UPSTASH_REDIS_REST_TOKEN`, redeploy
 - Webhook secret — generate new value, update `TELEGRAM_WEBHOOK_SECRET`, redeploy, then `pnpm register`
 
-**Dependency note:** Transitive vulnerabilities from `app-store-scraper → request` are
-pinned via `overrides` in `package.json`. The `request` SSRF advisory is risk-accepted:
-only known endpoints (`itunes.apple.com`, `play.google.com`) are ever called.
+**Dependency note:** The legacy `app-store-scraper → request` transitive is aliased
+to the maintained `@cypress/request` fork via pnpm overrides. Store calls still only
+target known endpoints (`itunes.apple.com`, `play.google.com`).
 
 ---
 
