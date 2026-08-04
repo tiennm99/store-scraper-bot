@@ -2,9 +2,9 @@
 
 Telegram bot that tracks Apple App Store and Google Play app version updates.
 Sends daily reports to registered groups and alerts when apps haven't been updated
-past a configurable threshold. JavaScript (Node.js) port of
-[store-scraper-bot-java](https://github.com/tiennm99/java-store-scraper-bot), running
-on Vercel serverless functions with Upstash Redis as the data store.
+past a configurable threshold. JavaScript (Node.js) port of the original Java
+implementation — the earlier Java and Go generations are preserved in this repository's
+git history. Runs on Vercel serverless functions with Upstash Redis as the data store.
 
 ---
 
