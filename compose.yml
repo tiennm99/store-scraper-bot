@@ -1,7 +1,0 @@
-services:
-  server:
-    build:
-      context: .
-
-# If you need database, add database service
-# Check compose.dev.yml for example
