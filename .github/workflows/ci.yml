@@ -11,16 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6
-
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
-          cache: 'pnpm'
+          cache: 'npm'
 
-      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: npm ci --ignore-scripts
 
-      - run: pnpm lint
+      - run: npm run lint
 
       # Update find roots when adding new top-level JS dirs.
       - name: Syntax check all JS

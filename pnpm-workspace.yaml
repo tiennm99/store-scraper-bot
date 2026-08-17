@@ -1,6 +1,0 @@
-allowBuilds:
-  es5-ext: true
-
-overrides:
-  request: "npm:@cypress/request@^4.0.1"
-  undici: "7.28.0"
